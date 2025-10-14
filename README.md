@@ -208,7 +208,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Ali Musterih Addikebir
 
 **Professor:**
-- Dr. Kaafi Rahman
+- Dr. Kafi Rahman (The Truman CS Department)
 
 **Institution:**
 - Truman State University
@@ -217,16 +217,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 For questions or support, please contact:
-- **Email:** [Contact Information]
-- **GitHub Issues:** [Repository Issues]
-- **Documentation:** [Project Wiki]
-
+- **Email:** pranaya.khadgi99@gmail.com
 ## 🔗 Links
 
-- **Live Demo:** [Vercel Deployment URL]
-- **GitHub Repository:** [Repository URL]
-- **Documentation:** [Project Documentation]
-- **Truman State University:** [University Website]
+- **Live Demo:** trumaninthevirtual.vercel.app
+- **GitHub Repository:** https://github.com/pranayakhadgi/Truman-in-the-Virtual
+- **Documentation:** (https://github.com/pranayakhadgi/Truman-in-the-Virtual/edit/main/README.md)
+- **Truman State University:** https://www.truman.edu/
 
 ---
 
