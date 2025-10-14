@@ -24,6 +24,28 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Additional Styles for Multi-Skybox -->
+  <style>
+    /* Pixelated loading animation */
+    .pixelated-rotate {
+      width: 32px;
+      height: 32px;
+      background-image: url('../public/icons/icons.png');
+      background-size: 64px 32px;
+      background-position: 0 0;
+      background-repeat: no-repeat;
+      animation: pixelatedRotate 1s linear infinite;
+      display: inline-block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+    }
+    
+    @keyframes pixelatedRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white">
   <div id="root" class="h-screen w-full"></div>
