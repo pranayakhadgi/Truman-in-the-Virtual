@@ -8,8 +8,8 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts for pixelated text -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Google Fonts for various text styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Playfair+Display:wght@400;700;900&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -48,20 +48,45 @@
             opacity: 1;
         }
         
-        /* Pixelated font for quotation */
+        /* Elegant font for quotation */
+        .elegant-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            line-height: 1.6;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            animation: zoomInFade 2s ease-out;
+            word-wrap: break-word;
+            white-space: normal;
+            max-width: 100%;
+        }
+        
+        /* Pixelated font for subtitle */
         .pixelated-text {
             font-family: 'Press Start 2P', monospace;
-            font-size: 1.2rem;
+            font-size: 1rem;
             line-height: 1.8;
             color: var(--truman-purple);
         }
         
-        /* Typewriter animation */
+        /* Typewriter animation for subtitle */
         .typewriter {
             overflow: hidden;
             border-right: 3px solid var(--truman-purple);
             white-space: nowrap;
             animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        /* Zoom in animation for quotation */
+        @keyframes zoomInFade {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         
         @keyframes typing {
@@ -106,6 +131,25 @@
             backdrop-filter: blur(2px);
         }
         
+        /* Main title styling */
+        .main-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #ffffff, #ffd700, #ffffff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
         /* Bulldog emoji animation */
         .bulldog-emoji {
             display: inline-block;
@@ -128,12 +172,10 @@
 <body class="min-h-screen overflow-hidden">
     <!-- Background Slideshow -->
     <div class="slideshow-container">
-        <div class="slide active" style="background-image: url('posx.jpg');"></div>
-        <div class="slide" style="background-image: url('posy.jpg');"></div>
-        <div class="slide" style="background-image: url('posz.jpg');"></div>
-        <div class="slide" style="background-image: url('negx.jpg');"></div>
-        <div class="slide" style="background-image: url('negy.jpg');"></div>
-        <div class="slide" style="background-image: url('negz.jpg');"></div>
+        <div class="slide active" style="background-image: url('images/truman_clocktower.jpg');"></div>
+        <div class="slide" style="background-image: url('images/truman_fountain.jpg');"></div>
+        <div class="slide" style="background-image: url('images/truman_international_group.jpg');"></div>
+        <div class="slide" style="background-image: url('images/truman_magruder.jpg');"></div>
     </div>
     
     <!-- Main Content -->
@@ -144,20 +186,20 @@
         </div>
         
         <!-- Main Title -->
-        <h1 class="text-6xl font-bold text-center mb-6 text-white drop-shadow-lg">
+        <h1 class="text-6xl font-bold text-center mb-6 main-title">
             Truman Virtual Tour
         </h1>
         
         <!-- Quotation Section -->
-        <div class="max-w-4xl mx-auto text-center mb-8 px-4">
-            <div class="pixelated-text typewriter mb-4">
-                "Experience Truman State University from anywhere in the world"
+        <div class="max-w-5xl mx-auto text-center mb-8 px-4">
+            <div class="elegant-text mb-4">
+                "Experience Truman State University from anywhere in the world. Discover our beautiful campus, vibrant community, and exceptional academic programs through this immersive virtual journey."
             </div>
         </div>
         
         <!-- Subtitle with Bulldog -->
         <div class="text-center mb-12">
-            <p class="text-xl text-white drop-shadow-lg">
+            <p class="pixelated-text typewriter">
                 Designed by Computer Science students at Truman State 
                 <span class="bulldog-emoji text-2xl">🐕</span>
             </p>
@@ -195,13 +237,14 @@
         function startVirtualTour() {
             // Add loading animation
             const button = event.target;
+            const originalContent = button.innerHTML;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
             button.disabled = true;
             
             // Redirect to 3D experience after short delay
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1000);
+            }, 1500);
         }
         
         // Add some interactive effects
