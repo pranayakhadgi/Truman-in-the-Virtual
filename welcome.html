@@ -116,6 +116,45 @@
             transform: translateY(-2px) scale(1.02);
         }
         
+        /* Pixelated loading animation */
+        .pixelated-loading {
+            width: 32px;
+            height: 32px;
+            background-image: url('images/icons.png');
+            background-size: 128px 128px; /* Adjust based on actual sprite sheet size */
+            background-position: 0 0;
+            animation: pixelatedSpin 0.8s steps(4) infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes pixelatedSpin {
+            0% { background-position: 0 0; }
+            25% { background-position: -32px 0; }
+            50% { background-position: -64px 0; }
+            75% { background-position: -96px 0; }
+            100% { background-position: 0 0; }
+        }
+        
+        /* Alternative: Simple pixelated rotation */
+        .pixelated-rotate {
+            width: 32px;
+            height: 32px;
+            background-image: url('images/icons.png');
+            background-size: 64px 32px; /* Actual size: 64x32 with 2 sprites */
+            background-position: 0 0; /* Start with first sprite */
+            background-repeat: no-repeat;
+            animation: pixelatedRotate 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            image-rendering: pixelated;
+        }
+        
+        @keyframes pixelatedRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* Truman logo styling */
         .truman-logo {
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
@@ -225,10 +264,10 @@
         
         // Start button functionality
         function startVirtualTour() {
-            // Add loading animation
+            // Add pixelated loading animation
             const button = event.target;
             const originalContent = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+            button.innerHTML = '<div class="pixelated-rotate"></div>Loading...';
             button.disabled = true;
             
             // Redirect to 3D experience after short delay
