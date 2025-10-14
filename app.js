@@ -69,15 +69,35 @@ function SkyboxScene() {
   function App() {
     return (
       <div className="relative h-full w-full overflow-hidden">
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <h1 className="text-4xl font-bold mb-4">SkyScape Voyager</h1>
+        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+          <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Truman Virtual Tour</h1>
         </div>
         <SkyboxScene />
-        <div className="absolute bottom-4 left-4 bg-gray-800 bg-opacity-70 p-4 rounded-lg">
-          <p className="text-sm">Use mouse to navigate the 3D environment</p>
-          <p className="text-xs mt-2 text-gray-400">
-            Place your skybox images (posx.jpg, negx.jpg, etc.) in the same folder
-          </p>
+        
+        {/* Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <button 
+            onClick={() => window.location.href = 'welcome.html'}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            <i className="fas fa-arrow-left mr-2"></i>
+            Back to Welcome
+          </button>
+        </div>
+        
+        {/* Navigation Instructions */}
+        <div className="absolute bottom-4 left-4 bg-purple-800 bg-opacity-80 p-4 rounded-lg text-white">
+          <p className="text-sm font-semibold">🖱️ Mouse Controls:</p>
+          <p className="text-xs mt-1">• Click & drag to look around</p>
+          <p className="text-xs">• Scroll to zoom in/out</p>
+          <p className="text-xs">• Right-click & drag to pan</p>
+        </div>
+        
+        {/* Truman Branding */}
+        <div className="absolute top-4 right-4 z-20">
+          <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
+            <img src="images/logo.svg" alt="Truman State University" className="h-8 w-auto">
+          </div>
         </div>
       </div>
     );

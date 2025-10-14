@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truman Virtual Tour - Welcome</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for pixelated text -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Truman Purple Color Scheme */
+        :root {
+            --truman-purple: #510c76;
+            --truman-gold: #ffd700;
+            --truman-dark: #2d1b3d;
+        }
+        
+        /* Background slideshow */
+        .slideshow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        
+        .slide.active {
+            opacity: 1;
+        }
+        
+        /* Pixelated font for quotation */
+        .pixelated-text {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--truman-purple);
+        }
+        
+        /* Typewriter animation */
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid var(--truman-purple);
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--truman-purple); }
+        }
+        
+        /* Animated start button */
+        .start-button {
+            background: linear-gradient(45deg, var(--truman-purple), var(--truman-gold));
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .start-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(81, 12, 118, 0.4);
+        }
+        
+        .start-button:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+        
+        /* Truman logo styling */
+        .truman-logo {
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+        
+        .truman-logo:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Main content overlay */
+        .content-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+        }
+        
+        /* Bulldog emoji animation */
+        .bulldog-emoji {
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-hidden">
+    <!-- Background Slideshow -->
+    <div class="slideshow-container">
+        <div class="slide active" style="background-image: url('posx.jpg');"></div>
+        <div class="slide" style="background-image: url('posy.jpg');"></div>
+        <div class="slide" style="background-image: url('posz.jpg');"></div>
+        <div class="slide" style="background-image: url('negx.jpg');"></div>
+        <div class="slide" style="background-image: url('negy.jpg');"></div>
+        <div class="slide" style="background-image: url('negz.jpg');"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content-overlay min-h-screen flex flex-col items-center justify-center text-white relative z-10">
+        <!-- Truman Logo -->
+        <div class="mb-8">
+            <img src="images/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
+        </div>
+        
+        <!-- Main Title -->
+        <h1 class="text-6xl font-bold text-center mb-6 text-white drop-shadow-lg">
+            Truman Virtual Tour
+        </h1>
+        
+        <!-- Quotation Section -->
+        <div class="max-w-4xl mx-auto text-center mb-8 px-4">
+            <div class="pixelated-text typewriter mb-4">
+                "Experience Truman State University from anywhere in the world"
+            </div>
+        </div>
+        
+        <!-- Subtitle with Bulldog -->
+        <div class="text-center mb-12">
+            <p class="text-xl text-white drop-shadow-lg">
+                Designed by Computer Science students at Truman State 
+                <span class="bulldog-emoji text-2xl">🐕</span>
+            </p>
+        </div>
+        
+        <!-- Start Button -->
+        <div class="text-center">
+            <button onclick="startVirtualTour()" class="start-button text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg">
+                <i class="fas fa-play mr-2"></i>
+                Start Virtual Tour
+            </button>
+        </div>
+        
+        <!-- Additional Info -->
+        <div class="absolute bottom-4 left-4 text-sm text-white/80">
+            <p>Use mouse to navigate • 3D Experience</p>
+        </div>
+    </div>
+    
+    <script>
+        // Slideshow functionality
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        
+        // Auto-advance slideshow every 4 seconds
+        setInterval(nextSlide, 4000);
+        
+        // Start button functionality
+        function startVirtualTour() {
+            // Add loading animation
+            const button = event.target;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+            button.disabled = true;
+            
+            // Redirect to 3D experience after short delay
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+        
+        // Add some interactive effects
+        document.addEventListener('mousemove', (e) => {
+            const logo = document.querySelector('.truman-logo');
+            const x = (e.clientX / window.innerWidth) * 10;
+            const y = (e.clientY / window.innerHeight) * 10;
+            logo.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+        });
+    </script>
+</body>
+</html>
