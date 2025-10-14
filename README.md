@@ -2,6 +2,9 @@
 
 <img width="1398" height="733" alt="Screen Shot 2025-10-14 at 1 27 56 AM" src="https://github.com/user-attachments/assets/a704adcb-9ed5-4fe2-83fa-1632bcce73f8" />
 
+<img width="1396" height="729" alt="Screen Shot 2025-10-14 at 1 30 01 AM" src="https://github.com/user-attachments/assets/c8f4105d-3555-4f31-9bfc-b4ef15b7adee" />
+
+
 ## 🎓 Project Overview
 An immersive 3D virtual tour application for Truman State University, allowing prospective students and visitors to explore the campus from anywhere in the world through a browser-based 3D environment.
 
