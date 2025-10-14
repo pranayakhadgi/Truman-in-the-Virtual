@@ -1,0 +1,27 @@
+{
+  "name": "truman-in-the-virtual",
+  "version": "1.0.0",
+  "description": "An immersive 3D skybox experience built with React and Three.js",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "start": "python -m http.server 8000",
+    "build": "echo 'Static build - no build step required'",
+    "preview": "python -m http.server 8000"
+  },
+  "keywords": [
+    "3d",
+    "skybox",
+    "threejs",
+    "react",
+    "virtual-reality",
+    "webgl"
+  ],
+  "authors": [
+    "Pranaya Khadgi Shahi",
+    "Ali Musterih Addikebir"
+  ],
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
