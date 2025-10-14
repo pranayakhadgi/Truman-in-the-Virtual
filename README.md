@@ -144,6 +144,9 @@ npm run build
 - ✅ **Image optimization** - Renamed football field images to prevent conflicts
 - ✅ **Transition debugging** - Enhanced error handling and console logging
 - ✅ **Loading indicators** - Improved pixelated loading animations during transitions
+- ✅ **Distinct skybox images** - Fixed to use different image sets for each environment
+- ✅ **Button click events** - Fixed navigation button functionality with proper event handling
+- ✅ **State management** - Improved transition state handling and debugging
 
 ### Future Updates
 - 🔄 **Database integration** - User analytics and feedback
@@ -209,7 +212,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Ali Musterih Addikebir
 
 **Professor:**
-- Dr. Kaafi Rahman
+- Dr. Kafi Rahman
 
 **Institution:**
 - Truman State University
