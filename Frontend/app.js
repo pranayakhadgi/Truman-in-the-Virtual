@@ -23,9 +23,9 @@ function SkyboxScene() {
       // Skybox texture
       const loader = new THREE.CubeTextureLoader();
       const texture = loader.load([
-        "posx.jpg", "negx.jpg",
-        "posy.jpg", "negy.jpg",
-        "posz.jpg", "negz.jpg"
+        "../public/images/posx.jpg", "../public/images/negx.jpg",
+        "../public/images/posy.jpg", "../public/images/negy.jpg",
+        "../public/images/posz.jpg", "../public/images/negz.jpg"
       ]);
       scene.background = texture;
   
@@ -96,7 +96,7 @@ function SkyboxScene() {
         {/* Truman Branding */}
         <div className="absolute top-4 right-4 z-20">
           <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
-            <img src="images/logo.svg" alt="Truman State University" className="h-8 w-auto" />
+            <img src="../public/logo/logo.svg" alt="Truman State University" className="h-8 w-auto" />
           </div>
         </div>
       </div>

@@ -1,27 +1,38 @@
 {
-  "name": "truman-in-the-virtual",
+  "name": "truman-virtual-tour",
   "version": "1.0.0",
-  "description": "An immersive 3D skybox experience built with React and Three.js",
-  "main": "index.html",
+  "description": "An immersive 3D virtual tour experience for Truman State University",
+  "main": "Frontend/index.html",
   "scripts": {
-    "dev": "python -m http.server 8000",
-    "start": "python -m http.server 8000",
+    "dev": "python3 dev-server.py",
+    "start": "node Backend/server.js",
+    "frontend": "cd Frontend && python3 -m http.server 8000",
+    "backend": "cd Backend && npm start",
     "build": "echo 'Static build - no build step required'",
-    "preview": "python -m http.server 8000"
+    "update-readme": "python3 update_readme.py"
   },
   "keywords": [
+    "truman",
+    "virtual-tour",
     "3d",
     "skybox",
     "threejs",
     "react",
-    "virtual-reality",
-    "webgl"
+    "campus",
+    "university"
   ],
   "authors": [
     "Pranaya Khadgi Shahi",
     "Ali Musterih Addikebir"
   ],
+  "professor": "Dr. Kaafi Rahman",
+  "institution": "Truman State University",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pranayakhadgi/Truman-in-the-Virtual"
+  },
+  "homepage": "https://truman-in-the-virtual.vercel.app",
   "devDependencies": {},
   "dependencies": {}
 }

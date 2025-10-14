@@ -120,7 +120,7 @@
         .pixelated-loading {
             width: 32px;
             height: 32px;
-            background-image: url('images/icons.png');
+            background-image: url('../public/icons/icons.png');
             background-size: 128px 128px; /* Adjust based on actual sprite sheet size */
             background-position: 0 0;
             animation: pixelatedSpin 0.8s steps(4) infinite;
@@ -140,7 +140,7 @@
         .pixelated-rotate {
             width: 32px;
             height: 32px;
-            background-image: url('images/icons.png');
+            background-image: url('../public/icons/icons.png');
             background-size: 64px 32px; /* Actual size: 64x32 with 2 sprites */
             background-position: 0 0; /* Start with first sprite */
             background-repeat: no-repeat;
@@ -202,17 +202,17 @@
 <body class="min-h-screen overflow-hidden">
     <!-- Background Slideshow -->
     <div class="slideshow-container">
-        <div class="slide active" style="background-image: url('images/truman_clocktower.jpg');"></div>
-        <div class="slide" style="background-image: url('images/truman_fountain.jpg');"></div>
-        <div class="slide" style="background-image: url('images/truman_international_group.jpg');"></div>
-        <div class="slide" style="background-image: url('images/truman_magruder.jpg');"></div>
+        <div class="slide active" style="background-image: url('../public/images/truman_clocktower.jpg');"></div>
+        <div class="slide" style="background-image: url('../public/images/truman_fountain.jpg');"></div>
+        <div class="slide" style="background-image: url('../public/images/truman_international_group.jpg');"></div>
+        <div class="slide" style="background-image: url('../public/images/truman_magruder.jpg');"></div>
     </div>
     
     <!-- Main Content -->
     <div class="content-overlay min-h-screen flex flex-col items-center justify-center text-white relative z-10">
         <!-- Truman Logo -->
         <div class="mb-8">
-            <img src="images/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
+            <img src="../public/logo/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
         </div>
         
         <!-- Main Title -->

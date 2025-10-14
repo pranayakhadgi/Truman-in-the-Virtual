@@ -26,13 +26,15 @@ def start_dev_server(port=8000):
     """Start the development server with live reloading"""
     try:
         with socketserver.TCPServer(("", port), CORSHTTPRequestHandler) as httpd:
-            print(f"🚀 Development server running at http://localhost:{port}")
+            print(f"🚀 Truman Virtual Tour Development Server")
             print(f"📁 Serving files from: {os.getcwd()}")
+            print(f"🌐 Frontend: http://localhost:{port}/Frontend/welcome.html")
+            print(f"🌐 3D Tour: http://localhost:{port}/Frontend/index.html")
             print("🔄 Live editing enabled - changes will be reflected immediately")
             print("🌐 Opening browser...")
             
-            # Open browser automatically
-            webbrowser.open(f'http://localhost:{port}')
+            # Open browser automatically to welcome page
+            webbrowser.open(f'http://localhost:{port}/Frontend/welcome.html')
             
             print("\nPress Ctrl+C to stop the server")
             httpd.serve_forever()
