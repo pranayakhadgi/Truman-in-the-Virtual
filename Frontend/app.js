@@ -17,9 +17,9 @@ function SkyboxScene() {
       {
         name: "Football Field",
         images: [
-          "../public/field-skyboxes 2/Footballfield/posx2.jpg", "../public/field-skyboxes 2/Footballfield/negx2.jpg",
-          "../public/field-skyboxes 2/Footballfield/posy2.jpg", "../public/field-skyboxes 2/Footballfield/negy2.jpg",
-          "../public/field-skyboxes 2/Footballfield/posz2.jpg", "../public/field-skyboxes 2/Footballfield/negz2.jpg"
+          "../public/field-skyboxes 2/Footballfield2/posx.jpg", "../public/field-skyboxes 2/Footballfield2/negx.jpg",
+          "../public/field-skyboxes 2/Footballfield2/posy.jpg", "../public/field-skyboxes 2/Footballfield2/negy.jpg",
+          "../public/field-skyboxes 2/Footballfield2/posz.jpg", "../public/field-skyboxes 2/Footballfield2/negz.jpg"
         ]
       }
     ];
@@ -93,7 +93,6 @@ function SkyboxScene() {
                     console.log(`Successfully loaded skybox: ${newConfig.name}`);
                     scene.background = newTexture;
                     currentTexture = newTexture;
-                    setCurrentSkybox(skyboxIndex);
                     
                     // Fade back in
                     const fadeOutInterval = setInterval(() => {
@@ -170,24 +169,46 @@ function SkyboxScene() {
     ];
     
     const handlePreviousSkybox = () => {
-      if (isTransitioning) return;
+      console.log('Previous button clicked!', { isTransitioning, currentSkybox });
+      if (isTransitioning) {
+        console.log('Transition in progress, ignoring click');
+        return;
+      }
       const prevIndex = currentSkybox > 0 ? currentSkybox - 1 : skyboxConfigs.length - 1;
       console.log(`Previous button clicked: ${currentSkybox} -> ${prevIndex}`);
+      
+      // Update local state first
+      setCurrentSkybox(prevIndex);
+      setIsTransitioning(true);
+      
+      // Call transition function
       if (window.transitionToSkybox) {
         window.transitionToSkybox(prevIndex);
       } else {
         console.error('transitionToSkybox function not available');
+        setIsTransitioning(false);
       }
     };
     
     const handleNextSkybox = () => {
-      if (isTransitioning) return;
+      console.log('Next button clicked!', { isTransitioning, currentSkybox });
+      if (isTransitioning) {
+        console.log('Transition in progress, ignoring click');
+        return;
+      }
       const nextIndex = currentSkybox < skyboxConfigs.length - 1 ? currentSkybox + 1 : 0;
       console.log(`Next button clicked: ${currentSkybox} -> ${nextIndex}`);
+      
+      // Update local state first
+      setCurrentSkybox(nextIndex);
+      setIsTransitioning(true);
+      
+      // Call transition function
       if (window.transitionToSkybox) {
         window.transitionToSkybox(nextIndex);
       } else {
         console.error('transitionToSkybox function not available');
+        setIsTransitioning(false);
       }
     };
     
@@ -214,9 +235,14 @@ function SkyboxScene() {
           <div className="bg-black bg-opacity-70 rounded-lg p-4 flex items-center space-x-4">
             {/* Previous Button */}
             <button 
-              onClick={handlePreviousSkybox}
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Previous button onClick triggered');
+                handlePreviousSkybox();
+              }}
               disabled={isTransitioning}
               className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg"
+              style={{ cursor: isTransitioning ? 'not-allowed' : 'pointer' }}
             >
               <i className="fas fa-step-backward text-lg"></i>
             </button>
@@ -231,9 +257,14 @@ function SkyboxScene() {
             
             {/* Next Button */}
             <button 
-              onClick={handleNextSkybox}
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Next button onClick triggered');
+                handleNextSkybox();
+              }}
               disabled={isTransitioning}
               className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg"
+              style={{ cursor: isTransitioning ? 'not-allowed' : 'pointer' }}
             >
               <i className="fas fa-step-forward text-lg"></i>
             </button>
