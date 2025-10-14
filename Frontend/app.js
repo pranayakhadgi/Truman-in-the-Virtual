@@ -17,9 +17,9 @@ function SkyboxScene() {
       {
         name: "Football Field",
         images: [
-          "../public/field-skyboxes 2/Footballfield/posx.jpg", "../public/field-skyboxes 2/Footballfield/negx.jpg",
-          "../public/field-skyboxes 2/Footballfield/posy.jpg", "../public/field-skyboxes 2/Footballfield/negy.jpg",
-          "../public/field-skyboxes 2/Footballfield/posz.jpg", "../public/field-skyboxes 2/Footballfield/negz.jpg"
+          "../public/field-skyboxes 2/Footballfield/posx2.jpg", "../public/field-skyboxes 2/Footballfield/negx2.jpg",
+          "../public/field-skyboxes 2/Footballfield/posy2.jpg", "../public/field-skyboxes 2/Footballfield/negy2.jpg",
+          "../public/field-skyboxes 2/Footballfield/posz2.jpg", "../public/field-skyboxes 2/Footballfield/negz2.jpg"
         ]
       }
     ];
@@ -65,10 +65,11 @@ function SkyboxScene() {
       const transitionToSkybox = (skyboxIndex) => {
         if (isTransitioning || skyboxIndex === currentSkybox) return;
         
+        console.log(`Transitioning to skybox ${skyboxIndex}: ${skyboxConfigs[skyboxIndex].name}`);
         setIsTransitioning(true);
         const newConfig = skyboxConfigs[skyboxIndex];
         
-        // Create fade effect
+        // Create fade effect with improved timing
         const fadeOut = () => {
           const fadeMaterial = new THREE.MeshBasicMaterial({
             color: 0x000000,
@@ -81,29 +82,46 @@ function SkyboxScene() {
           
           const fadeIn = () => {
             const fadeInterval = setInterval(() => {
-              fadeMaterial.opacity += 0.05;
+              fadeMaterial.opacity += 0.08;
               if (fadeMaterial.opacity >= 1) {
                 clearInterval(fadeInterval);
-                // Load new skybox
-                const newTexture = loadSkybox(newConfig);
-                scene.background = newTexture;
-                currentTexture = newTexture;
-                setCurrentSkybox(skyboxIndex);
                 
-                // Fade back in
-                const fadeOutInterval = setInterval(() => {
-                  fadeMaterial.opacity -= 0.05;
-                  if (fadeMaterial.opacity <= 0) {
-                    clearInterval(fadeOutInterval);
-                    scene.remove(fadeMesh);
+                // Load new skybox with error handling
+                try {
+                  const newTexture = loadSkybox(newConfig);
+                  newTexture.onLoad = () => {
+                    console.log(`Successfully loaded skybox: ${newConfig.name}`);
+                    scene.background = newTexture;
+                    currentTexture = newTexture;
+                    setCurrentSkybox(skyboxIndex);
+                    
+                    // Fade back in
+                    const fadeOutInterval = setInterval(() => {
+                      fadeMaterial.opacity -= 0.08;
+                      if (fadeMaterial.opacity <= 0) {
+                        clearInterval(fadeOutInterval);
+                        scene.remove(fadeMesh);
+                        setIsTransitioning(false);
+                        console.log(`Transition completed to: ${newConfig.name}`);
+                      }
+                    }, 30);
+                  };
+                  
+                  newTexture.onError = (error) => {
+                    console.error(`Failed to load skybox: ${newConfig.name}`, error);
                     setIsTransitioning(false);
-                  }
-                }, 50);
+                    scene.remove(fadeMesh);
+                  };
+                } catch (error) {
+                  console.error(`Error loading skybox: ${newConfig.name}`, error);
+                  setIsTransitioning(false);
+                  scene.remove(fadeMesh);
+                }
               }
-            }, 50);
+            }, 30);
           };
           
-          setTimeout(fadeIn, 100);
+          setTimeout(fadeIn, 50);
         };
         
         fadeOut();
@@ -154,20 +172,22 @@ function SkyboxScene() {
     const handlePreviousSkybox = () => {
       if (isTransitioning) return;
       const prevIndex = currentSkybox > 0 ? currentSkybox - 1 : skyboxConfigs.length - 1;
-      setCurrentSkybox(prevIndex);
-      setIsTransitioning(true);
+      console.log(`Previous button clicked: ${currentSkybox} -> ${prevIndex}`);
       if (window.transitionToSkybox) {
         window.transitionToSkybox(prevIndex);
+      } else {
+        console.error('transitionToSkybox function not available');
       }
     };
     
     const handleNextSkybox = () => {
       if (isTransitioning) return;
       const nextIndex = currentSkybox < skyboxConfigs.length - 1 ? currentSkybox + 1 : 0;
-      setCurrentSkybox(nextIndex);
-      setIsTransitioning(true);
+      console.log(`Next button clicked: ${currentSkybox} -> ${nextIndex}`);
       if (window.transitionToSkybox) {
         window.transitionToSkybox(nextIndex);
+      } else {
+        console.error('transitionToSkybox function not available');
       }
     };
     
