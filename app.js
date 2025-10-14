@@ -96,7 +96,7 @@ function SkyboxScene() {
         {/* Truman Branding */}
         <div className="absolute top-4 right-4 z-20">
           <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
-            <img src="images/logo.svg" alt="Truman State University" className="h-8 w-auto">
+            <img src="images/logo.svg" alt="Truman State University" className="h-8 w-auto" />
           </div>
         </div>
       </div>
