@@ -1,7 +1,9 @@
 # Truman Virtual Tour - Immersive 3D Campus Experience
 
+## Just a prototype deployment sample!!
 <img width="1398" height="733" alt="Screen Shot 2025-10-14 at 1 27 56 AM" src="https://github.com/user-attachments/assets/a704adcb-9ed5-4fe2-83fa-1632bcce73f8" />
 
+## The 3D skybox feature (used a demo 6 axis images as a sample placeholder :) )
 <img width="1396" height="729" alt="Screen Shot 2025-10-14 at 1 30 01 AM" src="https://github.com/user-attachments/assets/c8f4105d-3555-4f31-9bfc-b4ef15b7adee" />
 
 
