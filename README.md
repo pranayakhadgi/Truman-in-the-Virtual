@@ -6,6 +6,10 @@
 ## The 3D skybox feature (used a demo 6 axis images as a sample placeholder :) )
 <img width="1396" height="729" alt="Screen Shot 2025-10-14 at 1 30 01 AM" src="https://github.com/user-attachments/assets/c8f4105d-3555-4f31-9bfc-b4ef15b7adee" />
 
+##Added annotations on all the 6 sides, they're small white dotted placed at the center of each square of the cube interior
+<img width="1396" height="818" alt="Screen Shot 2025-10-16 at 10 04 20 PM" src="https://github.com/user-attachments/assets/1131fdf5-20c2-4c48-a060-23ba1437b635" />
+
+
 
 ## 🎓 Project Overview
 An immersive 3D virtual tour application for Truman State University, allowing prospective students and visitors to explore the campus from anywhere in the world through a browser-based 3D environment.
