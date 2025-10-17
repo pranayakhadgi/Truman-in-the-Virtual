@@ -2,4 +2,213 @@ body {
     margin: 0;
     overflow: hidden;
   }
+
+  /* Annotation System - CSS Additions */
+  .loading {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    z-index: 1000;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+  
+  .instructions {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(31, 41, 55, 0.9);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    z-index: 1000;
+    max-width: 260px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  }
+  .instructions h3 { margin: 0 0 6px 0; font-size: 16px; }
+  .instructions p { margin: 4px 0; font-size: 12px; line-height: 1.2; }
+  
+  .annotation-overlay {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ffffff;
+    color: #6b21a8; /* purple-800 */
+    padding: 10px 16px;
+    border-radius: 10px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    z-index: 1000;
+    display: none;
+    font-weight: 600;
+  }
+  .annotation-overlay.show { display: block; }
+  
+  /* Cursor styles */
+  .cursor-pointer { cursor: pointer; }
+  .cursor-default { cursor: default; }
+  
+  /* Dialog Box Styles */
+  #dialogBox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  #dialogBox.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .dialog-content {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    transform: scale(0.8) translateY(20px);
+    transition: transform 0.3s ease;
+  }
+  
+  #dialogBox.show .dialog-content {
+    transform: scale(1) translateY(0);
+  }
+  
+  .dialog-image {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .dialog-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+  }
+  
+  .dialog-text {
+    flex: 1;
+    padding: 30px;
+    font-family: 'Monocursive', 'Courier New', monospace;
+    position: relative;
+  }
+  
+  .dialog-text h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.3;
+  }
+  
+  .dialog-text p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .close-btn:hover {
+    background: #ff3742;
+    transform: scale(1.1);
+  }
+  
+  /* Import Monocursive font */
+  @import url('https://fonts.googleapis.com/css2?family=Monocursive:wght@400;700&display=swap');
+  
+  /* Annotation Detail Panel Styles */
+  #annotationDetailPanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    z-index: 10000;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    transition: all 0.3s ease;
+    font-family: 'Monocursive', 'Courier New', monospace;
+  }
+  
+  #annotationDetailPanel.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  
+  .annotation-detail-content h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .annotation-detail-content p {
+    margin: 0 0 15px 0;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .return-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Monocursive', 'Courier New', monospace;
+  }
+  
+  .return-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  }
   

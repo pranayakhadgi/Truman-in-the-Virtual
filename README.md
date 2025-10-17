@@ -43,6 +43,15 @@ truman-virtual-tour/
 - **Cross-platform compatibility**
 - **Loading animations** during transitions
 
+### Interactive Annotation System
+- **6 Clickable Annotations** positioned at skybox cube edges (front, back, left, right, top, bottom)
+- **Smooth Camera Transitions** - Cinematic 1.5-second animations when clicking annotations
+- **Professional UI Panels** - Animated detail panels with contextual information
+- **Return to Overview** - Seamless navigation back to center position
+- **2D Billboard Rendering** - Annotations always face camera with proper depth testing
+- **Hover Effects** - Visual feedback with scale animations and cursor changes
+- **Performance Optimized** - Efficient sprite rendering and memory management
+
 ### Technical Features
 - **React.js** for component-based architecture
 - **Three.js** for 3D graphics rendering
@@ -148,6 +157,17 @@ npm run build
 - ✅ **Button click events** - Fixed navigation button functionality with proper event handling
 - ✅ **State management** - Improved transition state handling and debugging
 
+### October 16, 2025 - Major Feature Update
+- ✅ **Interactive Annotation System** - Added 6 clickable annotations positioned at skybox cube edges
+- ✅ **Smooth Camera Transitions** - Implemented cinematic camera animations when clicking annotations
+- ✅ **Professional UI Panels** - Created animated detail panels with return-to-overview functionality
+- ✅ **2D Billboard Annotations** - Annotations always face camera with proper depth testing
+- ✅ **Enhanced User Experience** - Replaced static popups with immersive camera movements
+- ✅ **Monocursive Font Integration** - Added professional typography for annotation content
+- ✅ **Responsive Design** - Annotations work seamlessly across different screen sizes
+- ✅ **Performance Optimization** - Efficient sprite rendering and memory management
+- ✅ **Code Cleanup** - Removed unused dialog box functions and streamlined architecture
+
 ### Future Updates
 - 🔄 **Database integration** - User analytics and feedback
 - 🔄 **Enhanced 3D features** - Multiple campus locations
@@ -161,7 +181,11 @@ npm run build
 1. **Open welcome page** - View Truman campus slideshow
 2. **Click "Start Virtual Tour"** - Enter 3D experience
 3. **Navigate with mouse** - Look around, zoom, pan
-4. **Use back button** - Return to welcome page
+4. **Click annotations** - Small white dots for immersive camera transitions
+5. **Explore all 6 directions** - Front, back, left, right, top, bottom annotations
+6. **Return to overview** - Use "Return to Overview" button after clicking annotations
+7. **Switch skyboxes** - Use Previous/Next buttons to explore different environments
+8. **Use back button** - Return to welcome page
 
 ### For Developers
 1. **Clone repository** - Get latest code
@@ -234,6 +258,6 @@ For questions or support, please contact:
 
 ---
 
-**Last Updated:** October 14, 2025  
-**Version:** 1.0.0  
+**Last Updated:** October 16, 2025  
+**Version:** 1.1.0  
 **Status:** Active Development

@@ -33,6 +33,7 @@
     "url": "https://github.com/pranayakhadgi/Truman-in-the-Virtual"
   },
   "homepage": "https://truman-in-the-virtual.vercel.app",
-  "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "snyk": "^1.1300.0"
+  }
 }

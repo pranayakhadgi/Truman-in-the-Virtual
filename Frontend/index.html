@@ -36,7 +36,7 @@
       background-position: 0 0;
       background-repeat: no-repeat;
       animation: pixelatedRotate 1s linear infinite;
-      display: inline-block;
+    display: inline-block;
       margin: 0 auto;
       image-rendering: pixelated;
     }
@@ -52,5 +52,18 @@
 
   <!-- Your React App -->
   <script type="text/babel" src="app.js"></script>
+  <!-- Add before closing </body> tag -->
+<div class="loading" id="loading">Loading 3D Environment...</div>
+
+<div class="instructions">
+    <h3>🎯 Find the Annotation</h3>
+    <p><strong>Look around:</strong> Drag to rotate view</p>
+    <p><strong>Hover:</strong> White dot will expand</p>
+    <p><strong>Click:</strong> Reveal the message!</p>
+</div>
+
+<div class="annotation-overlay" id="annotationMessage">
+    You found me! 🎉
+</div>
 </body>
 </html> 
