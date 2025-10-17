@@ -1,5 +1,12 @@
 # Truman Virtual Tour - Immersive 3D Campus Experience
 
+## Just a prototype deployment sample!!
+<img width="1398" height="733" alt="Screen Shot 2025-10-14 at 1 27 56 AM" src="https://github.com/user-attachments/assets/a704adcb-9ed5-4fe2-83fa-1632bcce73f8" />
+
+## The 3D skybox feature (used a demo 6 axis images as a sample placeholder :) )
+<img width="1396" height="729" alt="Screen Shot 2025-10-14 at 1 30 01 AM" src="https://github.com/user-attachments/assets/c8f4105d-3555-4f31-9bfc-b4ef15b7adee" />
+
+
 ## 🎓 Project Overview
 An immersive 3D virtual tour application for Truman State University, allowing prospective students and visitors to explore the campus from anywhere in the world through a browser-based 3D environment.
 
@@ -236,7 +243,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Ali Musterih Addikebir
 
 **Professor:**
-- Dr. Kafi Rahman
+- Dr. Kafi Rahman (The Truman CS Department)
 
 **Institution:**
 - Truman State University
@@ -245,16 +252,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 For questions or support, please contact:
-- **Email:** [Contact Information]
-- **GitHub Issues:** [Repository Issues]
-- **Documentation:** [Project Wiki]
-
+- **Email:** pranaya.khadgi99@gmail.com
 ## 🔗 Links
 
-- **Live Demo:** [Vercel Deployment URL]
-- **GitHub Repository:** [Repository URL]
-- **Documentation:** [Project Documentation]
-- **Truman State University:** [University Website]
+- **Live Demo:** trumaninthevirtual.vercel.app
+- **GitHub Repository:** https://github.com/pranayakhadgi/Truman-in-the-Virtual
+- **Documentation:** (https://github.com/pranayakhadgi/Truman-in-the-Virtual/edit/main/README.md)
+- **Truman State University:** https://www.truman.edu/
 
 ---
 
