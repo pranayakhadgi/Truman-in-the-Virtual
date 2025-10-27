@@ -212,3 +212,62 @@ body {
     box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
   }
   
+  /* Coordinate Indicator Styles */
+  #camera-coordinate-display, #target-coordinate-display {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  
+  #camera-coordinate-display div, #target-coordinate-display div {
+    display: flex;
+    justify-content: space-between;
+    min-width: 120px;
+  }
+  
+  #camera-coordinate-display span {
+    color: #10b981 !important; /* green-500 */
+    font-weight: bold;
+  }
+  
+  #target-coordinate-display span {
+    color: #f59e0b !important; /* amber-500 */
+    font-weight: bold;
+  }
+  
+  /* Ensure coordinate indicators are visible */
+  #camera-coordinate-display, #target-coordinate-display {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px;
+    border-radius: 4px;
+  }
+  
+  /* Crosshair styles */
+  .crosshair {
+    pointer-events: none;
+    user-select: none;
+  }
+  
+  /* Annotation Tooltip Styles */
+  #annotation-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+  }
+  
+  #annotation-tooltip.show {
+    opacity: 1;
+  }
+  

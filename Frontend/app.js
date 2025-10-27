@@ -98,73 +98,101 @@ function SkyboxScene() {
       
       const annotations = [
         {
-          position: new THREE.Vector3(0, 0, -50), // Front face (stuck to cube interior)
-          title: "Front Annotation",
+          position: new THREE.Vector3(-1.99 * 10, -0.43 * 10, 4.57 * 10), // Scaled to skybox edge
+          title: "The Blue House",
+          description: "A charming blue house located in the Truman campus area. This building represents the residential life at Truman State University.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0, 0, -50),
-          cameraPosition: new THREE.Vector3(0, 0, -20),
-          fov: 60
+          cameraTarget: new THREE.Vector3(-1.99 * 10, -0.43 * 10, 4.57 * 10),
+          cameraPosition: new THREE.Vector3(-1.99, -0.43, 2.57), // Keep camera close
+          fov: 60,
+          color: "#3b82f6"
         },
         {
-          position: new THREE.Vector3(0, 0, 50), // Back face (stuck to cube interior)
-          title: "Back Annotation",
+          position: new THREE.Vector3(-4.56 * 10, -0.43 * 10, 2.05 * 10), // Scaled to skybox edge
+          title: "The Red House",
+          description: "A beautiful red house that adds character to the campus landscape. This building showcases Truman's diverse architectural styles.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0, 0, 50),
-          cameraPosition: new THREE.Vector3(0, 0, 20),
-          fov: 60
+          cameraTarget: new THREE.Vector3(-4.56 * 10, -0.43 * 10, 2.05 * 10),
+          cameraPosition: new THREE.Vector3(-4.56, -0.43, 0.05), // Keep camera close
+          fov: 60,
+          color: "#ef4444"
         },
         {
-          position: new THREE.Vector3(-50, 0, 0), // Left face (stuck to cube interior)
-          title: "Left Annotation",
+          position: new THREE.Vector3(0.73 * 10, 0.16 * 10, -4.94 * 10), // Scaled to skybox edge
+          title: "The Right Goal Post",
+          description: "Part of Truman's athletic facilities, this goal post represents the university's commitment to sports and student activities.",
           visible: true,
-          cameraTarget: new THREE.Vector3(-50, 0, 0),
-          cameraPosition: new THREE.Vector3(-20, 0, 0),
-          fov: 60
+          cameraTarget: new THREE.Vector3(0.73 * 10, 0.16 * 10, -4.94 * 10),
+          cameraPosition: new THREE.Vector3(0.73, 0.16, -2.94), // Keep camera close
+          fov: 60,
+          color: "#f59e0b"
         },
         {
-          position: new THREE.Vector3(50, 0, 0), // Right face (stuck to cube interior)
-          title: "Right Annotation",
+          position: new THREE.Vector3(4.99 * 10, -0.10 * 10, 0.24 * 10), // Scaled to skybox edge
+          title: "The Red Barn",
+          description: "A historic red barn that adds rustic charm to the campus. This structure represents Truman's connection to its agricultural heritage.",
           visible: true,
-          cameraTarget: new THREE.Vector3(50, 0, 0),
-          cameraPosition: new THREE.Vector3(20, 0, 0),
-          fov: 60
+          cameraTarget: new THREE.Vector3(4.99 * 10, -0.10 * 10, 0.24 * 10),
+          cameraPosition: new THREE.Vector3(2.99, -0.10, 0.24), // Keep camera close
+          fov: 60,
+          color: "#dc2626"
         },
         {
-          position: new THREE.Vector3(0, 50, 0), // Top face (stuck to cube interior)
-          title: "Top Annotation",
+          position: new THREE.Vector3(0.27 * 10, -0.13 * 10, 4.99 * 10), // Scaled to skybox edge
+          title: "The Left Goal Post",
+          description: "The left goal post of Truman's football field, symbolizing the university's athletic spirit and school pride.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0, 50, 0),
-          cameraPosition: new THREE.Vector3(0, 20, 0),
-          fov: 60
+          cameraTarget: new THREE.Vector3(0.27 * 10, -0.13 * 10, 4.99 * 10),
+          cameraPosition: new THREE.Vector3(0.27, -0.13, 2.99), // Keep camera close
+          fov: 60,
+          color: "#f59e0b"
         },
         {
-          position: new THREE.Vector3(0, -50, 0), // Bottom face (stuck to cube interior)
-          title: "Bottom Annotation",
+          position: new THREE.Vector3(-4.65 * 10, 1.78 * 10, -0.49 * 10), // Scaled to skybox edge
+          title: "The Football Field",
+          description: "Truman's main football field where Bulldogs play. This is the heart of Truman's athletic program and school spirit.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0, -50, 0),
-          cameraPosition: new THREE.Vector3(0, -20, 0),
-          fov: 60
+          cameraTarget: new THREE.Vector3(-4.65 * 10, 1.78 * 10, -0.49 * 10),
+          cameraPosition: new THREE.Vector3(-2.65, 1.78, -0.49), // Keep camera close
+          fov: 60,
+          color: "#10b981"
         }
       ];
       
       const createAnnotationMarkers = () => {
-        // Create a canvas-based circular sprite (white dot)
-        const size = 64;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        const radius = 10;
-        ctx.clearRect(0, 0, size, size);
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-        ctx.fill();
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        
-        // Create sprites for each annotation
+        // Create sprites for each annotation with unique colors
         annotations.forEach((annotation, index) => {
+          // Create a canvas-based circular sprite with annotation-specific color
+          const size = 64;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const radius = 12;
+          
+          // Clear canvas
+          ctx.clearRect(0, 0, size, size);
+          
+          // Draw outer ring
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fill();
+          
+          // Draw inner circle with annotation color
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, radius - 3, 0, Math.PI * 2);
+          ctx.fillStyle = annotation.color;
+          ctx.fill();
+          
+          // Draw center dot
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, 3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fill();
+          
+          const texture = new THREE.CanvasTexture(canvas);
+          
           const material = new THREE.SpriteMaterial({ 
             map: texture, 
             transparent: true, 
@@ -174,7 +202,7 @@ function SkyboxScene() {
           });
           const sprite = new THREE.Sprite(material);
           sprite.position.copy(annotation.position);
-          sprite.scale.set(2, 2, 1); // Small as a pea
+          sprite.scale.set(2.5, 2.5, 1); // Slightly larger for better visibility
           sprite.renderOrder = 999; // Render on top
           sprite.userData = { annotationIndex: index, annotation: annotation };
           scene.add(sprite);
@@ -186,13 +214,19 @@ function SkyboxScene() {
         if (!sprite) return;
         isHovering = hovering;
         if (hovering) {
-          sprite.scale.set(3, 3, 1); // Slightly larger on hover
+          sprite.scale.set(3.5, 3.5, 1); // Slightly larger on hover
           renderer.domElement.style.cursor = 'pointer';
           hoveredAnnotation = sprite;
+          
+          // Show tooltip
+          showTooltip(sprite.userData.annotation.title);
         } else {
-          sprite.scale.set(2, 2, 1); // Match the new base scale
+          sprite.scale.set(2.5, 2.5, 1); // Match the new base scale
           renderer.domElement.style.cursor = 'default';
           hoveredAnnotation = null;
+          
+          // Hide tooltip
+          hideTooltip();
         }
       };
       
@@ -202,7 +236,7 @@ function SkyboxScene() {
         
         // Simple click bounce animation
         if (!sprite) return;
-        const originalScale = 2; // Match the new base scale
+        const originalScale = 2.5; // Match the new base scale
         const startTime = Date.now();
         const duration = 500;
         const animateClick = () => {
@@ -217,6 +251,61 @@ function SkyboxScene() {
         requestAnimationFrame(animateClick);
       };
       
+      // Tooltip functions
+      const showTooltip = (title) => {
+        // Remove existing tooltip
+        hideTooltip();
+        
+        // Create tooltip element
+        const tooltip = document.createElement('div');
+        tooltip.id = 'annotation-tooltip';
+        tooltip.innerHTML = title;
+        tooltip.style.cssText = `
+          position: fixed;
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: bold;
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          z-index: 10000;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        `;
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip near mouse
+        const updateTooltipPosition = (event) => {
+          tooltip.style.left = (event.clientX + 15) + 'px';
+          tooltip.style.top = (event.clientY - 30) + 'px';
+        };
+        
+        // Add mouse move listener for tooltip positioning
+        document.addEventListener('mousemove', updateTooltipPosition);
+        tooltip.updatePosition = updateTooltipPosition;
+        
+        // Show tooltip with fade in
+        setTimeout(() => {
+          tooltip.style.opacity = '1';
+        }, 10);
+      };
+      
+      const hideTooltip = () => {
+        const tooltip = document.getElementById('annotation-tooltip');
+        if (tooltip) {
+          // Remove mouse move listener
+          if (tooltip.updatePosition) {
+            document.removeEventListener('mousemove', tooltip.updatePosition);
+          }
+          tooltip.remove();
+        }
+      };
+      
       const onMouseMove = (event) => {
         if (!raycaster || !mouse || annotationSprites.length === 0) return;
         const rect = renderer.domElement.getBoundingClientRect();
@@ -224,6 +313,8 @@ function SkyboxScene() {
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
         raycaster.setFromCamera(mouse, camera);
+        
+        // Check for annotation intersections
         const intersects = raycaster.intersectObjects(annotationSprites, true);
         
         if (intersects.length > 0) {
@@ -239,6 +330,34 @@ function SkyboxScene() {
         } else if (hoveredAnnotation) {
           // No intersection, reset hover
           onAnnotationHover(hoveredAnnotation, false);
+        }
+        
+        // Raycast to skybox for target coordinates
+        try {
+          // Create a large sphere for skybox intersection
+          const skyboxGeometry = new THREE.SphereGeometry(1000, 32, 32);
+          const skyboxMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x000000, 
+            transparent: true, 
+            opacity: 0,
+            side: THREE.BackSide
+          });
+          const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+          
+          raycaster.setFromCamera(mouse, camera);
+          const skyboxIntersects = raycaster.intersectObject(skyboxMesh);
+          
+          if (skyboxIntersects.length > 0) {
+            const intersectionPoint = skyboxIntersects[0].point;
+            window.lastTargetPosition = intersectionPoint;
+          }
+          
+          // Clean up temporary mesh
+          skyboxGeometry.dispose();
+          skyboxMaterial.dispose();
+          
+        } catch (error) {
+          console.warn('Raycasting error:', error);
         }
       };
       
@@ -302,9 +421,14 @@ function SkyboxScene() {
         panel.id = 'annotationDetailPanel';
         panel.innerHTML = `
           <div class="annotation-detail-content">
-            <h2>${annotation.title}</h2>
-            <p>You've focused on the ${annotation.title.toLowerCase()} area of the Truman campus.</p>
-            <p>This is where the smooth camera transition brings you for a closer look at specific campus features.</p>
+            <h2 style="color: ${annotation.color};">${annotation.title}</h2>
+            <p>${annotation.description}</p>
+            <div style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 8px;">
+              <strong>Coordinates:</strong><br>
+              X: ${annotation.position.x.toFixed(2)}<br>
+              Y: ${annotation.position.y.toFixed(2)}<br>
+              Z: ${annotation.position.z.toFixed(2)}
+            </div>
             <button class="return-btn" onclick="returnToOverview()">🔙 Return to Overview</button>
           </div>
         `;
@@ -450,9 +574,46 @@ function SkyboxScene() {
         
         // Pulse animation while hovering over annotation (throttled)
         if (hoveredAnnotation && isHovering) {
-          const scale = 2 + Math.sin(Date.now() * 0.005) * 0.5; // Match new base scale with subtle pulse
+          const scale = 2.5 + Math.sin(Date.now() * 0.005) * 0.5; // Match new base scale with subtle pulse
           hoveredAnnotation.scale.set(scale, scale, 1);
         }
+        
+        // Update coordinate displays
+        try {
+          // Update camera coordinates
+          const cameraX = document.getElementById('camera-x');
+          const cameraY = document.getElementById('camera-y');
+          const cameraZ = document.getElementById('camera-z');
+          
+          if (cameraX && cameraY && cameraZ && camera) {
+            const x = camera.position.x.toFixed(2);
+            const y = camera.position.y.toFixed(2);
+            const z = camera.position.z.toFixed(2);
+            
+            cameraX.textContent = `(${x})`;
+            cameraY.textContent = `(${y})`;
+            cameraZ.textContent = `(${z})`;
+          }
+          
+          // Update target coordinates (will be updated by mouse move)
+          const targetX = document.getElementById('target-x');
+          const targetY = document.getElementById('target-y');
+          const targetZ = document.getElementById('target-z');
+          
+          if (targetX && targetY && targetZ && window.lastTargetPosition) {
+            const x = window.lastTargetPosition.x.toFixed(2);
+            const y = window.lastTargetPosition.y.toFixed(2);
+            const z = window.lastTargetPosition.z.toFixed(2);
+            
+            targetX.textContent = `(${x})`;
+            targetY.textContent = `(${y})`;
+            targetZ.textContent = `(${z})`;
+          }
+          
+        } catch (error) {
+          console.warn('Coordinate display update error:', error);
+        }
+        
         renderer.render(scene, camera);
       };
       animate();
@@ -476,6 +637,9 @@ function SkyboxScene() {
           if (animationId) {
             cancelAnimationFrame(animationId);
           }
+          
+          // Hide tooltip
+          hideTooltip();
           
           // Remove event listeners
           window.removeEventListener("resize", handleResize);
@@ -629,7 +793,7 @@ function SkyboxScene() {
         </div>
         
         {/* Navigation Instructions */}
-        <div className="absolute bottom-4 left-4 bg-purple-800 bg-opacity-80 p-4 rounded-lg text-white">
+        <div className="absolute bottom-20 left-4 bg-purple-800 bg-opacity-80 p-4 rounded-lg text-white">
           <p className="text-sm font-semibold">🖱️ Mouse Controls:</p>
           <p className="text-xs mt-1">• Click & drag to look around</p>
           <p className="text-xs">• Scroll to zoom in/out</p>
@@ -640,6 +804,39 @@ function SkyboxScene() {
         <div className="absolute top-4 right-4 z-20">
           <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
             <img src="../public/logo/logo.svg" alt="Truman State University" className="h-8 w-auto" />
+          </div>
+        </div>
+        
+        {/* Camera Position Indicator */}
+        <div className="absolute bottom-4 right-4 z-50" style={{zIndex: 9999}}>
+          <div className="bg-black bg-opacity-90 p-3 rounded-lg shadow-lg text-white font-mono text-sm border border-gray-600 mb-2">
+            <div className="text-xs text-gray-300 mb-1">Camera Position</div>
+            <div id="camera-coordinate-display" className="space-y-1">
+              <div>X: <span id="camera-x" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
+              <div>Y: <span id="camera-y" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
+              <div>Z: <span id="camera-z" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mouse Target Indicator */}
+        <div className="absolute bottom-32 right-4 z-50" style={{zIndex: 9999}}>
+          <div className="bg-black bg-opacity-90 p-3 rounded-lg shadow-lg text-white font-mono text-sm border border-gray-600">
+            <div className="text-xs text-gray-300 mb-1">Mouse Target</div>
+            <div id="target-coordinate-display" className="space-y-1">
+              <div>X: <span id="target-x" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
+              <div>Y: <span id="target-y" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
+              <div>Z: <span id="target-z" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Crosshair Indicator */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none" style={{zIndex: 9999}}>
+          <div className="w-6 h-6 border-2 border-white border-opacity-60 rounded-full">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-1 h-1 bg-white rounded-full opacity-80"></div>
+            </div>
           </div>
         </div>
         
