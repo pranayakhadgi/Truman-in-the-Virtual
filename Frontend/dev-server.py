@@ -9,6 +9,7 @@ import socketserver
 import webbrowser
 import os
 import sys
+import socket
 from urllib.parse import urlparse
 
 class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -25,20 +26,26 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 def start_dev_server(port=8000):
     """Start the development server with live reloading"""
     try:
-        with socketserver.TCPServer(("", port), CORSHTTPRequestHandler) as httpd:
+        # Get local IP address for network access
+        try:
+            host_ip = socket.gethostbyname(socket.gethostname())
+        except Exception:
+            host_ip = "127.0.0.1"
+
+        with socketserver.TCPServer(("0.0.0.0", port), CORSHTTPRequestHandler) as httpd:
             print(f"🚀 Truman Virtual Tour Development Server")
             print(f"📁 Serving files from: {os.getcwd()}")
-            print(f"🌐 Frontend: http://localhost:{port}/Frontend/welcome.html")
-            print(f"🌐 3D Tour: http://localhost:{port}/Frontend/index.html")
+            print(f"🌐 Local:   http://localhost:{port}/Frontend/welcome.html")
+            print(f"🌐 Network: http://{host_ip}:{port}/Frontend/welcome.html")
+            print(f"🌐 3D Tour: http://{host_ip}:{port}/Frontend/index.html")
             print("🔄 Live editing enabled - changes will be reflected immediately")
-            print("🌐 Opening browser...")
-            
-            # Open browser automatically to welcome page
-            webbrowser.open(f'http://localhost:{port}/Frontend/welcome.html')
-            
             print("\nPress Ctrl+C to stop the server")
+
+            # Optional: Open only the local version in browser (safe)
+            webbrowser.open(f"http://localhost:{port}/Frontend/welcome.html")
+
             httpd.serve_forever()
-            
+
     except KeyboardInterrupt:
         print("\n👋 Development server stopped")
         sys.exit(0)

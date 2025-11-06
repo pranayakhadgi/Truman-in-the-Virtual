@@ -1,0 +1,175 @@
+/* Welcome Flow Styles */
+
+/* Root Variables */
+:root {
+  --truman-purple: #510c76;
+  --truman-purple-light: #7a1fb3;
+  --truman-purple-dark: #3a0854;
+  --truman-gold: #ffd700;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Option Cards */
+.option-card {
+  transition: all 0.3s ease;
+}
+
+.option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(81, 12, 118, 0.2);
+}
+
+.option-card.selected {
+  border: 3px solid var(--truman-purple);
+  background: linear-gradient(135deg, 
+    rgba(81, 12, 118, 0.1) 0%, 
+    rgba(122, 31, 179, 0.05) 100%);
+  animation: pulse 0.5s ease;
+}
+
+/* Facility Cards */
+.facility-card {
+  transition: all 0.3s ease;
+}
+
+.facility-card:hover {
+  transform: translateY(-4px);
+}
+
+.facility-card img {
+  transition: transform 0.3s ease;
+}
+
+.facility-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  position: relative;
+}
+
+.progress-step {
+  transition: all 0.3s ease;
+}
+
+/* Form Inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--truman-purple);
+}
+
+/* Loading States */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .option-card {
+    margin-bottom: 1rem;
+  }
+  
+  .facility-card {
+    margin-bottom: 1rem;
+  }
+  
+  .progress-bar-container {
+    padding: 0 1rem;
+  }
+}
+
+/* Step Transitions */
+.step-enter {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.step-exit {
+  animation: fadeOut 0.3s ease-in;
+}
+
+/* Completion Screen */
+.completion-screen {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Error States */
+.error-message {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Success States */
+.success-message {
+  color: var(--success);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+

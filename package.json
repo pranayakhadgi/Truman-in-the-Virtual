@@ -4,8 +4,9 @@
   "description": "An immersive 3D virtual tour experience for Truman State University",
   "main": "Frontend/index.html",
   "scripts": {
-    "dev": "python3 dev-server.py",
+    "dev": "cd Frontend && python3 dev-server.py",
     "start": "node Backend/server.js",
+    "start:clean": "lsof -ti :3000 | xargs kill -9 2>/dev/null; node Backend/server.js",
     "frontend": "cd Frontend && python3 -m http.server 8000",
     "backend": "cd Backend && npm start",
     "build": "echo 'Static build - no build step required'",

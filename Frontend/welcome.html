@@ -120,7 +120,7 @@
         .pixelated-loading {
             width: 32px;
             height: 32px;
-            background-image: url('../public/icons/icons.png');
+            background-image: url('/public/icons/icons.png');
             background-size: 128px 128px; /* Adjust based on actual sprite sheet size */
             background-position: 0 0;
             animation: pixelatedSpin 0.8s steps(4) infinite;
@@ -140,7 +140,7 @@
         .pixelated-rotate {
             width: 32px;
             height: 32px;
-            background-image: url('../public/icons/icons.png');
+            background-image: url('/public/icons/icons.png');
             background-size: 64px 32px; /* Actual size: 64x32 with 2 sprites */
             background-position: 0 0; /* Start with first sprite */
             background-repeat: no-repeat;
@@ -202,17 +202,17 @@
 <body class="min-h-screen overflow-hidden">
     <!-- Background Slideshow -->
     <div class="slideshow-container">
-        <div class="slide active" style="background-image: url('../public/images/truman_clocktower.jpg');"></div>
-        <div class="slide" style="background-image: url('../public/images/truman_fountain.jpg');"></div>
-        <div class="slide" style="background-image: url('../public/images/truman_international_group.jpg');"></div>
-        <div class="slide" style="background-image: url('../public/images/truman_magruder.jpg');"></div>
+        <div class="slide active" style="background-image: url('/public/images/truman_clocktower.jpg');"></div>
+        <div class="slide" style="background-image: url('/public/images/truman_fountain.jpg');"></div>
+        <div class="slide" style="background-image: url('/public/images/truman_international_group.jpg');"></div>
+        <div class="slide" style="background-image: url('/public/images/truman_magruder.jpg');"></div>
     </div>
     
     <!-- Main Content -->
     <div class="content-overlay min-h-screen flex flex-col items-center justify-center text-white relative z-10">
         <!-- Truman Logo -->
         <div class="mb-8">
-            <img src="../public/logo/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
+            <img src="/public/logo/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
         </div>
         
         <!-- Main Title -->
@@ -236,9 +236,9 @@
         
         <!-- Start Button -->
         <div class="text-center">
-            <button onclick="startVirtualTour()" class="start-button text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg">
+            <button onclick="startTransition()" class="start-button text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg">
                 <i class="fas fa-play mr-2"></i>
-                Start Virtual Tour
+                Begin Your Journey
             </button>
         </div>
         
@@ -262,17 +262,67 @@
         // Auto-advance slideshow every 4 seconds
         setInterval(nextSlide, 4000);
         
-        // Start button functionality
-        function startVirtualTour() {
-            // Add pixelated loading animation
-            const button = event.target;
+        // Start button functionality - smooth transition to 3D tour
+        function startTransition() {
+            const button = event.target.closest('button');
             const originalContent = button.innerHTML;
             button.innerHTML = '<div class="pixelated-rotate"></div>Loading...';
             button.disabled = true;
             
-            // Redirect to 3D experience after short delay
+            // Create smooth fade-out overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #510c76 0%, #7a1fb3 50%, #510c76 100%);
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.8s ease-in-out;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            `;
+            
+            // Add loading content to overlay
+            overlay.innerHTML = `
+                <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto mb-8" style="opacity: 0.9;">
+                <div class="loading-spinner" style="width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffd700; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p class="mt-6 text-xl" style="font-family: 'Playfair Display', serif;">Preparing your virtual tour...</p>
+            `;
+            
+            // Add spinner animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(overlay);
+            
+            // Trigger fade-in
             setTimeout(() => {
-                window.location.href = 'index.html';
+                overlay.style.opacity = '1';
+            }, 10);
+            
+            // Redirect after smooth transition
+            // Check if we're on backend server (port 3000) or Live Server (port 5500)
+            setTimeout(() => {
+                const currentPort = window.location.port;
+                if (currentPort === '3000' || currentPort === '') {
+                    // Backend server - use route
+                    window.location.href = '/tour';
+                } else {
+                    // Live Server or other - use direct file path
+                    window.location.href = '/index.html';
+                }
             }, 1500);
         }
         
@@ -286,3 +336,4 @@
     </script>
 </body>
 </html>
+

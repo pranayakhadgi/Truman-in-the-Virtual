@@ -3,24 +3,107 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
-require('dotenv').config();
+const mongoSanitize = require('express-mongo-sanitize');
+
+// Load .env file from Backend directory
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+// Database connection
+const { connectDB } = require('./config/database');
+
+// Routes
+const sessionRoutes = require('./routes/sessionRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:8000', 'http://localhost:3000', 'http://127.0.0.1:8000', 'http://127.0.0.1:3000'];
+
 // Middleware
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // Log CORS rejection for debugging
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+      // In development, be more permissive
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`   Development mode: Allowing request`);
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(mongoSanitize());
+
+// Static files
 app.use(express.static(path.join(__dirname, '../Frontend')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // API Routes
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const mongoose = require('mongoose');
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+  
   res.json({ 
     status: 'OK', 
     message: 'Truman Virtual Tour Backend is running',
-    timestamp: new Date().toISOString()
+    database: dbStatus,
+    timestamp: new Date().toISOString(),
+    version: '1.1.0'
   });
+});
+
+// Session routes
+app.use('/api/sessions', sessionRoutes);
+
+// Analytics endpoint (placeholder for future implementation)
+app.get('/api/analytics', async (req, res) => {
+  try {
+    const Session = require('./models/Session');
+    const mongoose = require('mongoose');
+    
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    
+    const totalSessions = await Session.countDocuments();
+    const completedSessions = await Session.countDocuments({ isComplete: true });
+    const totalResponses = await Session.aggregate([
+      { $project: { responseCount: { $size: '$responses' } } },
+      { $group: { _id: null, total: { $sum: '$responseCount' } } }
+    ]);
+    
+    res.json({
+      success: true,
+      analytics: {
+        totalSessions,
+        completedSessions,
+        totalResponses: totalResponses[0]?.total || 0,
+        completionRate: totalSessions > 0 ? (completedSessions / totalSessions * 100).toFixed(2) : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
 });
 
 // Serve frontend files
@@ -32,17 +115,74 @@ app.get('/tour', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/index.html'));
 });
 
+app.get('/welcome-flow', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/welcome-flow.html'));
+});
+
+app.get('/transition', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/transition.html'));
+});
+
+// Handle favicon requests (prevent 404 errors)
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No Content
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Truman Virtual Tour Backend running on port ${PORT}`);
-  console.log(`📱 Frontend available at: http://localhost:${PORT}`);
-  console.log(`🔧 API Health check: http://localhost:${PORT}/api/health`);
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
+
+// Initialize server
+const startServer = async () => {
+  try {
+    // Connect to database
+    await connectDB();
+    
+    // Start server with error handling
+    const server = app.listen(PORT, () => {
+      console.log('==========================================');
+      console.log('🚀 Truman Virtual Tour Backend');
+      console.log('==========================================');
+      console.log(`📱 Server running on port ${PORT}`);
+      console.log(`🌐 Frontend: http://localhost:${PORT}`);
+      console.log(`🔧 API Health: http://localhost:${PORT}/api/health`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+      const mongoose = require('mongoose');
+      console.log(`🗄️  Database: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
+      console.log('==========================================');
+    });
+    
+    // Handle port already in use error
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`\n❌ Port ${PORT} is already in use!`);
+        console.error(`\n🔧 Quick Fix:`);
+        console.error(`   Run this command to free the port:`);
+        console.error(`   kill $(lsof -ti :${PORT})`);
+        console.error(`\n   Or use a different port by setting PORT in .env file\n`);
+        process.exit(1);
+      } else {
+        console.error('❌ Server error:', error);
+        process.exit(1);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Start the server
+startServer();
 
 module.exports = app;

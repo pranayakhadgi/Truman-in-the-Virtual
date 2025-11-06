@@ -9,17 +9,17 @@ function SkyboxScene() {
       {
         name: "Truman Campus",
         images: [
-          "../public/images/posx.jpg", "../public/images/negx.jpg",
-          "../public/images/posy.jpg", "../public/images/negy.jpg",
-          "../public/images/posz.jpg", "../public/images/negz.jpg"
+          "/public/images/posx.jpg", "/public/images/negx.jpg",
+          "/public/images/posy.jpg", "/public/images/negy.jpg",
+          "/public/images/posz.jpg", "/public/images/negz.jpg"
         ]
       },
       {
         name: "Football Field",
         images: [
-          "../public/field-skyboxes 2/Footballfield2/posx.jpg", "../public/field-skyboxes 2/Footballfield2/negx.jpg",
-          "../public/field-skyboxes 2/Footballfield2/posy.jpg", "../public/field-skyboxes 2/Footballfield2/negy.jpg",
-          "../public/field-skyboxes 2/Footballfield2/posz.jpg", "../public/field-skyboxes 2/Footballfield2/negz.jpg"
+          "/public/field-skyboxes 2/Footballfield2/posx.jpg", "/public/field-skyboxes 2/Footballfield2/negx.jpg",
+          "/public/field-skyboxes 2/Footballfield2/posy.jpg", "/public/field-skyboxes 2/Footballfield2/negy.jpg",
+          "/public/field-skyboxes 2/Footballfield2/posz.jpg", "/public/field-skyboxes 2/Footballfield2/negz.jpg"
         ]
       }
     ];
@@ -58,6 +58,20 @@ function SkyboxScene() {
       controls.enableDamping = true;
       controls.dampingFactor = 0.25;
   
+      // Skybox configuration - using actual mesh geometry instead of scene.background
+      const SKYBOX_RADIUS = 500;
+      let skyboxMesh = null;
+      let skyboxMaterial = null;
+      
+      // Create skybox geometry and material (will be updated with texture)
+      const skyboxGeometry = new THREE.SphereGeometry(SKYBOX_RADIUS, 64, 64);
+      skyboxMaterial = new THREE.MeshBasicMaterial({
+        side: THREE.BackSide,
+        depthWrite: false
+      });
+      skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+      scene.add(skyboxMesh);
+      
       // Load initial skybox with improved error handling
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
@@ -69,13 +83,46 @@ function SkyboxScene() {
         skyboxConfigs[currentSkybox],
         (texture) => {
           console.log('Successfully loaded initial skybox:', skyboxConfigs[currentSkybox].name);
-          scene.background = texture;
+          // Apply cube texture to skybox material using custom shader
+          // Cube textures need proper sampling - use ShaderMaterial for direct display
+          const vertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+              vWorldPosition = worldPosition.xyz;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `;
+          
+          const fragmentShader = `
+            uniform samplerCube tCube;
+            varying vec3 vWorldPosition;
+            void main() {
+              vec3 direction = normalize(vWorldPosition - cameraPosition);
+              gl_FragColor = textureCube(tCube, direction);
+            }
+          `;
+          
+          const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+              tCube: { value: texture },
+              cameraPosition: { value: camera.position }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide,
+            depthWrite: false
+          });
+          
+          skyboxMesh.material.dispose();
+          skyboxMesh.material = shaderMaterial;
+          skyboxMaterial = shaderMaterial;
           currentTexture = texture;
         },
         (error) => {
           console.error('Failed to load initial skybox:', skyboxConfigs[currentSkybox].name, error);
-          // Fallback to a simple color background
-          scene.background = new THREE.Color(0x87CEEB);
+          // Fallback to a simple color
+          skyboxMaterial.color = new THREE.Color(0x87CEEB);
         }
       );
   
@@ -88,6 +135,16 @@ function SkyboxScene() {
   
       // Camera position
       camera.position.z = 5;
+      //this is where I implemented the camera directional vector fix code
+      // ---------------- Helper Functions ----------------
+      // Get a point along the camera's forward direction using unprojection
+      // This ensures annotations align with the camera's actual viewing direction
+      function getCameraDirectionPoint(camera, distance = 100) {
+        const vector = new THREE.Vector3(0, 0, -1); // Center of screen in NDC (Normalized Device Coordinates)
+        vector.unproject(camera);                   // Convert to world coordinates
+        const dir = vector.sub(camera.position).normalize(); // Forward direction vector
+        return camera.position.clone().add(dir.multiplyScalar(distance));
+      }
       
       // ---------------- Annotation System ----------------
       let annotationSprites = [];
@@ -95,73 +152,361 @@ function SkyboxScene() {
       let mouse;
       let isHovering = false;
       let hoveredAnnotation = null;
+      let interactivePolygons = [];
+      let cameraMarkers = [];
       
+      // Annotations: Store original positions, convert to direction vectors for skybox placement
+      // Positions are at various distances from origin - we'll normalize them to get directions
       const annotations = [
         {
-          position: new THREE.Vector3(-1.99 * 10, -0.43 * 10, 4.57 * 10), // Scaled to skybox edge
+          // Original position was (1.27, 0.53, -4.81) - convert to direction
+          originalPosition: new THREE.Vector3(1.27, 0.53, -4.81),
           title: "The Blue House",
           description: "A charming blue house located in the Truman campus area. This building represents the residential life at Truman State University.",
           visible: true,
-          cameraTarget: new THREE.Vector3(-1.99 * 10, -0.43 * 10, 4.57 * 10),
-          cameraPosition: new THREE.Vector3(-1.99, -0.43, 2.57), // Keep camera close
+          cameraTarget: new THREE.Vector3(1.99, 0.43, -4.57).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(1.99, 0.43, -2.57), // Keep camera close
           fov: 60,
-          color: "#3b82f6"
+          color: "#3b82f6",
+          createPolygon: true, // Auto-generate polygon for this annotation
+          polygonSize: 2.5 // Size of the auto-generated polygon
         },
         {
-          position: new THREE.Vector3(-4.56 * 10, -0.43 * 10, 2.05 * 10), // Scaled to skybox edge
+          // Original position was (-4.56 * 10, -0.43 * 10, 2.05 * 10) = (-45.6, -4.3, 20.5)
+          originalPosition: new THREE.Vector3(-45.6, -4.3, 20.5),
           title: "The Red House",
           description: "A beautiful red house that adds character to the campus landscape. This building showcases Truman's diverse architectural styles.",
           visible: true,
-          cameraTarget: new THREE.Vector3(-4.56 * 10, -0.43 * 10, 2.05 * 10),
+          cameraTarget: new THREE.Vector3(-45.6, -4.3, 20.5).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(-4.56, -0.43, 0.05), // Keep camera close
           fov: 60,
           color: "#ef4444"
         },
         {
-          position: new THREE.Vector3(0.73 * 10, 0.16 * 10, -4.94 * 10), // Scaled to skybox edge
+          // Original position was (0.73 * 10, 0.16 * 10, -4.94 * 10) = (7.3, 1.6, -49.4)
+          originalPosition: new THREE.Vector3(7.3, 1.6, -49.4),
           title: "The Right Goal Post",
           description: "Part of Truman's athletic facilities, this goal post represents the university's commitment to sports and student activities.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0.73 * 10, 0.16 * 10, -4.94 * 10),
+          cameraTarget: new THREE.Vector3(7.3, 1.6, -49.4).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(0.73, 0.16, -2.94), // Keep camera close
           fov: 60,
           color: "#f59e0b"
         },
         {
-          position: new THREE.Vector3(4.99 * 10, -0.10 * 10, 0.24 * 10), // Scaled to skybox edge
+          // Original position was (4.99 * 10, -0.10 * 10, 0.24 * 10) = (49.9, -1.0, 2.4)
+          originalPosition: new THREE.Vector3(49.9, -1.0, 2.4),
           title: "The Red Barn",
           description: "A historic red barn that adds rustic charm to the campus. This structure represents Truman's connection to its agricultural heritage.",
           visible: true,
-          cameraTarget: new THREE.Vector3(4.99 * 10, -0.10 * 10, 0.24 * 10),
+          cameraTarget: new THREE.Vector3(49.9, -1.0, 2.4).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(2.99, -0.10, 0.24), // Keep camera close
           fov: 60,
           color: "#dc2626"
         },
         {
-          position: new THREE.Vector3(0.27 * 10, -0.13 * 10, 4.99 * 10), // Scaled to skybox edge
+          // Original position was (0.27 * 10, -0.13 * 10, 4.99 * 10) = (2.7, -1.3, 49.9)
+          originalPosition: new THREE.Vector3(2.7, -1.3, 49.9),
           title: "The Left Goal Post",
           description: "The left goal post of Truman's football field, symbolizing the university's athletic spirit and school pride.",
           visible: true,
-          cameraTarget: new THREE.Vector3(0.27 * 10, -0.13 * 10, 4.99 * 10),
+          cameraTarget: new THREE.Vector3(2.7, -1.3, 49.9).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(0.27, -0.13, 2.99), // Keep camera close
           fov: 60,
           color: "#f59e0b"
         },
         {
-          position: new THREE.Vector3(-4.65 * 10, 1.78 * 10, -0.49 * 10), // Scaled to skybox edge
+          // Original position was (-4.65 * 10, 1.78 * 10, -0.49 * 10) = (-46.5, 17.8, -4.9)
+          originalPosition: new THREE.Vector3(-46.5, 17.8, -4.9),
           title: "The Football Field",
           description: "Truman's main football field where Bulldogs play. This is the heart of Truman's athletic program and school spirit.",
           visible: true,
-          cameraTarget: new THREE.Vector3(-4.65 * 10, 1.78 * 10, -0.49 * 10),
+          cameraTarget: new THREE.Vector3(-46.5, 17.8, -4.9).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(-2.65, 1.78, -0.49), // Keep camera close
           fov: 60,
           color: "#10b981"
         }
       ];
       
+      // Convert original positions to direction vectors for skybox placement
+      annotations.forEach(annotation => {
+        if (annotation.originalPosition) {
+          // Normalize the original position to get direction, then scale to skybox radius
+          annotation.direction = annotation.originalPosition.clone().normalize();
+        }
+      });
+      
+      // =============================================================
+      // 3D POLYGON EXPERIMENT: RIGHT GOAL POST ANNOTATION TEST
+      // =============================================================
+      
+      // Utility: Create 2D Polygon Geometry on Spherical Surface
+      // Projects 3D points onto a sphere surface, creates 2D shape, then maps back to sphere
+      function createAnnotationPolygon(points3D, color = 0xff8800, name = 'Zone', annotationData = null) {
+        // Step 1: Find centroid of points and normalize to sphere surface
+        const centroid = new THREE.Vector3();
+        points3D.forEach(p => centroid.add(p));
+        centroid.divideScalar(points3D.length);
+        centroid.normalize().multiplyScalar(SKYBOX_RADIUS);
+        
+        // Step 2: Create tangent plane coordinate system at centroid
+        const normal = centroid.clone().normalize();
+        const tangent1 = new THREE.Vector3();
+        const tangent2 = new THREE.Vector3();
+        
+        // Choose perpendicular vector for tangent1
+        if (Math.abs(normal.x) > 0.9) {
+          tangent1.set(0, 1, 0);
+        } else {
+          tangent1.set(1, 0, 0);
+        }
+        
+        // Create orthogonal tangent vectors
+        tangent1.cross(normal).normalize();
+        tangent2.crossVectors(normal, tangent1).normalize();
+        
+        // Step 3: Project 3D points onto tangent plane (2D coordinates)
+        const projectedPoints = points3D.map(point => {
+          const localPoint = point.clone().sub(centroid);
+          return new THREE.Vector2(
+            localPoint.dot(tangent1),
+            localPoint.dot(tangent2)
+          );
+        });
+        
+        // Step 4: Create 2D shape
+        const shape = new THREE.Shape();
+        if (projectedPoints.length > 0) {
+          shape.moveTo(projectedPoints[0].x, projectedPoints[0].y);
+          for (let i = 1; i < projectedPoints.length; i++) {
+            shape.lineTo(projectedPoints[i].x, projectedPoints[i].y);
+          }
+          shape.lineTo(projectedPoints[0].x, projectedPoints[0].y); // Close the shape
+        }
+        
+        // Step 5: Generate geometry from shape
+        const geometry = new THREE.ShapeGeometry(shape);
+        
+        // Step 6: Transform vertices back to sphere surface
+        const positions = geometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) {
+          const x = positions.getX(i);
+          const y = positions.getY(i);
+          
+          // Convert from 2D plane coordinates back to 3D
+          const worldPos = centroid.clone()
+            .add(tangent1.clone().multiplyScalar(x))
+            .add(tangent2.clone().multiplyScalar(y));
+          
+          // Project onto sphere surface (slightly inside to avoid z-fighting)
+          worldPos.normalize().multiplyScalar(SKYBOX_RADIUS - 0.5);
+          
+          positions.setXYZ(i, worldPos.x, worldPos.y, worldPos.z);
+        }
+        
+        positions.needsUpdate = true;
+        geometry.computeVertexNormals();
+        
+        // Step 7: Create material
+        const material = new THREE.MeshBasicMaterial({
+          color: color,
+          opacity: 0.25,
+          transparent: true,
+          side: THREE.DoubleSide,
+          depthTest: true,
+          depthWrite: false
+        });
+        
+        // Step 8: Create mesh
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = name;
+        mesh.renderOrder = 997; // Render before sprites but after skybox
+        mesh.userData.defaultOpacity = 0.25;
+        mesh.userData.hoverOpacity = 0.7;
+        if (annotationData) {
+          mesh.userData.annotation = annotationData;
+        }
+        
+        scene.add(mesh);
+        interactivePolygons.push(mesh);
+        return mesh;
+      }
+      
+      // Create camera position markers with labels
+      function createCameraMarkers(positions, color = 0xff0000) {
+        const markers = [];
+        positions.forEach((pos, i) => {
+          // Create sphere marker
+          const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+          const markerMaterial = new THREE.MeshBasicMaterial({ 
+            color: color,
+            transparent: true,
+            opacity: 0.9
+          });
+          const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+          marker.position.copy(pos);
+          marker.renderOrder = 998;
+          scene.add(marker);
+          
+          // Create label element
+          const label = document.createElement('div');
+          label.textContent = `Cam ${i + 1}`;
+          label.style.position = 'absolute';
+          label.style.color = '#ff4444';
+          label.style.fontSize = '12px';
+          label.style.fontWeight = 'bold';
+          label.style.fontFamily = 'monospace';
+          label.style.background = 'rgba(0, 0, 0, 0.7)';
+          label.style.padding = '2px 6px';
+          label.style.borderRadius = '4px';
+          label.style.pointerEvents = 'none';
+          label.style.zIndex = '10000';
+          label.style.display = 'none';
+          document.body.appendChild(label);
+          
+          marker.userData.label = label;
+          markers.push(marker);
+        });
+        return markers;
+      }
+      
+      // Helper: Create polygon corners around an annotation point
+      // Creates a square polygon centered on the annotation direction
+      function createPolygonCornersFromAnnotation(annotation, size = 2.0) {
+        // Get the annotation position on skybox
+        const center = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS);
+        const normal = annotation.direction.clone().normalize();
+        
+        // Create tangent plane coordinate system
+        const tangent1 = new THREE.Vector3();
+        const tangent2 = new THREE.Vector3();
+        
+        // Choose perpendicular vector for tangent1
+        if (Math.abs(normal.x) > 0.9) {
+          tangent1.set(0, 1, 0);
+        } else {
+          tangent1.set(1, 0, 0);
+        }
+        
+        // Create orthogonal tangent vectors
+        tangent1.cross(normal).normalize();
+        tangent2.crossVectors(normal, tangent1).normalize();
+        
+        // Create 4 corners of a square polygon
+        const halfSize = size / 2;
+        const corners = [
+          center.clone().add(tangent1.clone().multiplyScalar(-halfSize))
+                .add(tangent2.clone().multiplyScalar(-halfSize)),
+          center.clone().add(tangent1.clone().multiplyScalar(halfSize))
+                .add(tangent2.clone().multiplyScalar(-halfSize)),
+          center.clone().add(tangent1.clone().multiplyScalar(halfSize))
+                .add(tangent2.clone().multiplyScalar(halfSize)),
+          center.clone().add(tangent1.clone().multiplyScalar(-halfSize))
+                .add(tangent2.clone().multiplyScalar(halfSize))
+        ];
+        
+        // Project corners back onto sphere surface
+        return corners.map(corner => {
+          return corner.normalize().multiplyScalar(SKYBOX_RADIUS);
+        });
+      }
+      
+      // Initialize annotation polygons for all annotations that have polygon data
+      function initializeAnnotationPolygons() {
+        annotations.forEach((annotation, index) => {
+          // Check if annotation has polygon corners defined
+          if (annotation.polygonCorners && annotation.polygonCorners.length > 0) {
+            // Use provided polygon corners
+            const corners = annotation.polygonCorners.map(corner => {
+              if (corner instanceof THREE.Vector3) {
+                // If already a Vector3, normalize and scale to skybox radius
+                return corner.clone().normalize().multiplyScalar(SKYBOX_RADIUS);
+              } else if (Array.isArray(corner) && corner.length === 3) {
+                // If array of coordinates, convert to Vector3
+                return new THREE.Vector3(corner[0], corner[1], corner[2])
+                  .normalize().multiplyScalar(SKYBOX_RADIUS);
+              }
+              return null;
+            }).filter(corner => corner !== null);
+            
+            if (corners.length >= 3) {
+              const polygonColor = parseInt(annotation.color.replace('#', ''), 16);
+              createAnnotationPolygon(
+                corners,
+                polygonColor,
+                `${annotation.title} Zone`,
+                annotation
+              );
+            }
+          } else if (annotation.createPolygon !== false) {
+            // Auto-generate polygon for annotations (default: enabled for first annotation)
+            // Can be disabled by setting createPolygon: false
+            if (index === 0 || annotation.createPolygon === true) {
+              const polygonSize = annotation.polygonSize || 2.0;
+              const corners = createPolygonCornersFromAnnotation(annotation, polygonSize);
+              const polygonColor = parseInt(annotation.color.replace('#', ''), 16);
+              createAnnotationPolygon(
+                corners,
+                polygonColor,
+                `${annotation.title} Zone`,
+                annotation
+              );
+            }
+          }
+        });
+      }
+      
+      // Initialize Right Goal Post Polygon (Experimental - with specific corners)
+      function initializeRightGoalPostPolygon() {
+        // Goal Post Polygon: 4 Corners (Mouse Target Coordinates)
+        // These are raw world coordinates - convert to direction vectors, then scale to SKYBOX_RADIUS
+        const rawCorners = [
+          new THREE.Vector3(480.32, 400.77, -775.46),
+          new THREE.Vector3(426.38, -6.41, -900.07),
+          new THREE.Vector3(431.15, 14.92, -897.73),
+          new THREE.Vector3(524, -13.42, -846.56),
+        ];
+        
+        // Convert raw coordinates to direction vectors, then scale to skybox radius
+        const goalPostCorners = rawCorners.map(corner => {
+          return corner.clone().normalize().multiplyScalar(SKYBOX_RADIUS);
+        });
+        
+        // Find existing Right Goal Post annotation
+        const rightGoalPostAnnotation = annotations.find(ann => ann.title === "The Right Goal Post");
+        if (rightGoalPostAnnotation) {
+          // Store polygon corners in annotation for reference
+          rightGoalPostAnnotation.polygonCorners = goalPostCorners;
+          
+          const polygonColor = parseInt(rightGoalPostAnnotation.color.replace('#', ''), 16);
+          createAnnotationPolygon(
+            goalPostCorners, 
+            polygonColor, 
+            'Right Goal Post Zone',
+            rightGoalPostAnnotation
+          );
+        }
+        
+        // Camera positions for recorded viewpoints
+        const cameraPositions = [
+          new THREE.Vector3(0.42, 0.02, 4.98),
+          new THREE.Vector3(0.97, -0.03, 4.91),
+          new THREE.Vector3(0.97, 0.30, 4.90),
+          new THREE.Vector3(0.42, 0.28, 4.97),
+        ];
+        
+        // Create camera markers
+        cameraMarkers = createCameraMarkers(cameraPositions, 0xff0000);
+        
+        return { markers: cameraMarkers };
+      }
+      
       const createAnnotationMarkers = () => {
         // Create sprites for each annotation with unique colors
         annotations.forEach((annotation, index) => {
+          // Convert direction vector to position on skybox surface
+          const position = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS);
+          
           // Create a canvas-based circular sprite with annotation-specific color
           const size = 64;
           const canvas = document.createElement('canvas');
@@ -201,7 +546,7 @@ function SkyboxScene() {
             alphaTest: 0.1
           });
           const sprite = new THREE.Sprite(material);
-          sprite.position.copy(annotation.position);
+          sprite.position.copy(position);
           sprite.scale.set(2.5, 2.5, 1); // Slightly larger for better visibility
           sprite.renderOrder = 999; // Render on top
           sprite.userData = { annotationIndex: index, annotation: annotation };
@@ -307,62 +652,140 @@ function SkyboxScene() {
       };
       
       const onMouseMove = (event) => {
-        if (!raycaster || !mouse || annotationSprites.length === 0) return;
+        if (!raycaster || !mouse) return;
         const rect = renderer.domElement.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
         raycaster.setFromCamera(mouse, camera);
         
-        // Check for annotation intersections
-        const intersects = raycaster.intersectObjects(annotationSprites, true);
+        let hovering = false;
         
-        if (intersects.length > 0) {
-          const intersectedSprite = intersects[0].object;
-          if (hoveredAnnotation !== intersectedSprite) {
-            // Reset previous hovered annotation
-            if (hoveredAnnotation) {
-              onAnnotationHover(hoveredAnnotation, false);
+        // Check for annotation sprite intersections
+        if (annotationSprites.length > 0) {
+          const intersects = raycaster.intersectObjects(annotationSprites, true);
+          
+          if (intersects.length > 0) {
+            const intersectedSprite = intersects[0].object;
+            if (hoveredAnnotation !== intersectedSprite) {
+              // Reset previous hovered annotation
+              if (hoveredAnnotation) {
+                onAnnotationHover(hoveredAnnotation, false);
+              }
+              // Set new hovered annotation
+              onAnnotationHover(intersectedSprite, true);
             }
-            // Set new hovered annotation
-            onAnnotationHover(intersectedSprite, true);
+            hovering = true;
           }
-        } else if (hoveredAnnotation) {
-          // No intersection, reset hover
-          onAnnotationHover(hoveredAnnotation, false);
         }
         
-        // Raycast to skybox for target coordinates
-        try {
-          // Create a large sphere for skybox intersection
-          const skyboxGeometry = new THREE.SphereGeometry(1000, 32, 32);
-          const skyboxMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x000000, 
-            transparent: true, 
-            opacity: 0,
-            side: THREE.BackSide
-          });
-          const skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+        // Check for polygon intersections
+        if (interactivePolygons.length > 0 && !hovering) {
+          const polygonIntersects = raycaster.intersectObjects(interactivePolygons, true);
           
-          raycaster.setFromCamera(mouse, camera);
-          const skyboxIntersects = raycaster.intersectObject(skyboxMesh);
-          
-          if (skyboxIntersects.length > 0) {
-            const intersectionPoint = skyboxIntersects[0].point;
-            window.lastTargetPosition = intersectionPoint;
+          if (polygonIntersects.length > 0) {
+            const intersectedPolygon = polygonIntersects[0].object;
+            const material = intersectedPolygon.material;
+            
+            // Only update if it's a different polygon or not already highlighted
+            if (hoveredAnnotation !== intersectedPolygon || material.opacity !== intersectedPolygon.userData.hoverOpacity) {
+              // Reset previously hovered polygon if different
+              if (hoveredAnnotation && hoveredAnnotation !== intersectedPolygon && 
+                  hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined) {
+                hoveredAnnotation.material.opacity = hoveredAnnotation.userData.defaultOpacity;
+              }
+              
+              // Highlight polygon on hover
+              material.opacity = intersectedPolygon.userData.hoverOpacity;
+              renderer.domElement.style.cursor = 'pointer';
+              
+              // Show tooltip if polygon has annotation data
+              if (intersectedPolygon.userData.annotation) {
+                showTooltip(intersectedPolygon.userData.annotation.title);
+              } else {
+                showTooltip(intersectedPolygon.name);
+              }
+              
+              hoveredAnnotation = intersectedPolygon;
+              hovering = true;
+            }
+          } else {
+            // Only reset polygons if we're not hovering over one (avoid clearing on click)
+            if (!hoveredAnnotation || !(hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined)) {
+              // Reset all polygons to default opacity
+              interactivePolygons.forEach(polygon => {
+                if (polygon.material.opacity !== polygon.userData.defaultOpacity) {
+                  polygon.material.opacity = polygon.userData.defaultOpacity;
+                }
+              });
+            }
           }
-          
-          // Clean up temporary mesh
-          skyboxGeometry.dispose();
-          skyboxMaterial.dispose();
-          
+        }
+        
+        // Reset hover state if nothing is hovered (but preserve polygon state during clicks)
+        if (!hovering && hoveredAnnotation) {
+          // Check if it's a polygon - only reset if mouse truly moved away
+          if (hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined) {
+            // It's a polygon - check if we're still intersecting
+            const polygonIntersects = raycaster.intersectObjects([hoveredAnnotation], true);
+            if (polygonIntersects.length === 0) {
+              // Only reset if we're not intersecting anymore
+              hoveredAnnotation.material.opacity = hoveredAnnotation.userData.defaultOpacity;
+              renderer.domElement.style.cursor = 'default';
+              hideTooltip();
+              hoveredAnnotation = null;
+            }
+          } else if (hoveredAnnotation.scale) {
+            // It's a sprite annotation
+            onAnnotationHover(hoveredAnnotation, false);
+            renderer.domElement.style.cursor = 'default';
+            hideTooltip();
+            hoveredAnnotation = null;
+          }
+        }
+        
+        // Calculate target coordinates using raycasting against actual skybox mesh
+        // This ensures accurate positioning based on camera's viewing direction
+        try {
+          if (skyboxMesh) {
+            // Raycast against the actual skybox mesh
+            const skyboxIntersects = raycaster.intersectObject(skyboxMesh);
+            
+            if (skyboxIntersects.length > 0) {
+              // Get exact point on skybox surface
+              const intersectionPoint = skyboxIntersects[0].point;
+              window.lastTargetPosition = intersectionPoint;
+            } else {
+              // Fallback: use unprojection if raycast fails
+              const ndc = new THREE.Vector3(mouse.x, mouse.y, -1);
+              ndc.unproject(camera);
+              const dir = ndc.sub(camera.position).normalize();
+              const targetPoint = camera.position.clone().add(dir.multiplyScalar(SKYBOX_RADIUS));
+              window.lastTargetPosition = targetPoint;
+            }
+          }
         } catch (error) {
-          console.warn('Raycasting error:', error);
+          console.warn('Target coordinate calculation error:', error);
         }
       };
       
-      const onMouseClick = () => {
-        if (isHovering && hoveredAnnotation) onAnnotationClick(hoveredAnnotation);
+      const onMouseClick = (event) => {
+        if (hoveredAnnotation) {
+          // Check if it's a polygon with annotation data
+          if (hoveredAnnotation.userData && hoveredAnnotation.userData.annotation) {
+            // Keep polygon highlighted during animation
+            const polygon = hoveredAnnotation;
+            // Animate camera to annotation
+            animateCameraToAnnotation(hoveredAnnotation.userData.annotation);
+            // Ensure polygon stays highlighted (mouse might have moved slightly during click)
+            if (polygon.material && polygon.userData.hoverOpacity !== undefined) {
+              polygon.material.opacity = polygon.userData.hoverOpacity;
+            }
+          } else if (hoveredAnnotation.scale) {
+            // It's a sprite annotation
+            if (isHovering) onAnnotationClick(hoveredAnnotation);
+          }
+        }
       };
       
       // Smooth camera animation function
@@ -424,10 +847,20 @@ function SkyboxScene() {
             <h2 style="color: ${annotation.color};">${annotation.title}</h2>
             <p>${annotation.description}</p>
             <div style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 8px;">
-              <strong>Coordinates:</strong><br>
-              X: ${annotation.position.x.toFixed(2)}<br>
-              Y: ${annotation.position.y.toFixed(2)}<br>
-              Z: ${annotation.position.z.toFixed(2)}
+              ${annotation.originalPosition ? `
+                <strong>Original Position:</strong><br>
+                X: ${annotation.originalPosition.x.toFixed(2)}<br>
+                Y: ${annotation.originalPosition.y.toFixed(2)}<br>
+                Z: ${annotation.originalPosition.z.toFixed(2)}<br>
+              ` : ''}
+              <strong>Direction Vector:</strong><br>
+              X: ${annotation.direction.x.toFixed(3)}<br>
+              Y: ${annotation.direction.y.toFixed(3)}<br>
+              Z: ${annotation.direction.z.toFixed(3)}<br>
+              <strong>Position (on skybox):</strong><br>
+              X: ${(annotation.direction.x * SKYBOX_RADIUS).toFixed(2)}<br>
+              Y: ${(annotation.direction.y * SKYBOX_RADIUS).toFixed(2)}<br>
+              Z: ${(annotation.direction.z * SKYBOX_RADIUS).toFixed(2)}
             </div>
             <button class="return-btn" onclick="returnToOverview()">🔙 Return to Overview</button>
           </div>
@@ -493,6 +926,12 @@ function SkyboxScene() {
       mouse = new THREE.Vector2();
       createAnnotationMarkers();
       
+      // Initialize annotation polygons (including auto-generated ones)
+      initializeAnnotationPolygons();
+      
+      // Initialize Right Goal Post Polygon (with specific corners from mouse targets)
+      initializeRightGoalPostPolygon();
+      
       renderer.domElement.addEventListener('mousemove', onMouseMove);
       renderer.domElement.addEventListener('click', onMouseClick);
   
@@ -527,7 +966,46 @@ function SkyboxScene() {
                     newConfig,
                     (newTexture) => {
                       console.log(`Successfully loaded skybox: ${newConfig.name}`);
-                      scene.background = newTexture;
+                      // Update skybox mesh material with new cube texture
+                      if (skyboxMesh && skyboxMaterial) {
+                        // Update shader material uniforms
+                        if (skyboxMaterial.uniforms && skyboxMaterial.uniforms.tCube) {
+                          skyboxMaterial.uniforms.tCube.value = newTexture;
+                        } else {
+                          // Create new shader material if needed
+                          const vertexShader = `
+                            varying vec3 vWorldPosition;
+                            void main() {
+                              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                              vWorldPosition = worldPosition.xyz;
+                              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                            }
+                          `;
+                          
+                          const fragmentShader = `
+                            uniform samplerCube tCube;
+                            varying vec3 vWorldPosition;
+                            void main() {
+                              vec3 direction = normalize(vWorldPosition - cameraPosition);
+                              gl_FragColor = textureCube(tCube, direction);
+                            }
+                          `;
+                          
+                          const newMaterial = new THREE.ShaderMaterial({
+                            uniforms: {
+                              tCube: { value: newTexture },
+                              cameraPosition: { value: camera.position }
+                            },
+                            vertexShader: vertexShader,
+                            fragmentShader: fragmentShader,
+                            side: THREE.BackSide,
+                            depthWrite: false
+                          });
+                          skyboxMesh.material.dispose();
+                          skyboxMesh.material = newMaterial;
+                          skyboxMaterial = newMaterial;
+                        }
+                      }
                       currentTexture = newTexture;
                       // Fade back in
                       const fadeOutInterval = setInterval(() => {
@@ -535,6 +1013,8 @@ function SkyboxScene() {
                         if (fadeMaterial.opacity <= 0) {
                           clearInterval(fadeOutInterval);
                           scene.remove(fadeMesh);
+                          fadeGeometry.dispose();
+                          fadeMaterial.dispose();
                           setIsTransitioning(false);
                           console.log(`Transition completed to: ${newConfig.name}`);
                         }
@@ -544,12 +1024,16 @@ function SkyboxScene() {
                       console.error(`Failed to load skybox: ${newConfig.name}`, error);
                       setIsTransitioning(false);
                       scene.remove(fadeMesh);
+                      fadeGeometry.dispose();
+                      fadeMaterial.dispose();
                     }
                   );
                 } catch (error) {
                   console.error(`Error loading skybox: ${newConfig.name}`, error);
                   setIsTransitioning(false);
                   scene.remove(fadeMesh);
+                  fadeGeometry.dispose();
+                  fadeMaterial.dispose();
                 }
               }
             }, 30);
@@ -567,6 +1051,11 @@ function SkyboxScene() {
         animationId = requestAnimationFrame(animate);
         controls.update();
         
+        // Update shader material camera position uniform for proper cube texture sampling
+        if (skyboxMaterial && skyboxMaterial.uniforms && skyboxMaterial.uniforms.cameraPosition) {
+          skyboxMaterial.uniforms.cameraPosition.value.copy(camera.position);
+        }
+        
         // Make annotations always face camera (billboard behavior)
         annotationSprites.forEach(sprite => {
           sprite.lookAt(camera.position);
@@ -577,6 +1066,23 @@ function SkyboxScene() {
           const scale = 2.5 + Math.sin(Date.now() * 0.005) * 0.5; // Match new base scale with subtle pulse
           hoveredAnnotation.scale.set(scale, scale, 1);
         }
+        
+        // Update camera marker label positions
+        cameraMarkers.forEach(marker => {
+          if (marker && marker.userData && marker.userData.label) {
+            const vector = marker.position.clone().project(camera);
+            // Check if marker is in front of camera
+            if (vector.z < 1) {
+              const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+              const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+              marker.userData.label.style.left = `${x}px`;
+              marker.userData.label.style.top = `${y}px`;
+              marker.userData.label.style.display = 'block';
+            } else {
+              marker.userData.label.style.display = 'none';
+            }
+          }
+        });
         
         // Update coordinate displays
         try {
@@ -659,6 +1165,29 @@ function SkyboxScene() {
             if (sprite && sprite.material) {
               sprite.material.map?.dispose();
               sprite.material.dispose();
+            }
+          });
+          
+          // Dispose of interactive polygons
+          interactivePolygons.forEach(polygon => {
+            if (polygon && polygon.geometry) {
+              polygon.geometry.dispose();
+            }
+            if (polygon && polygon.material) {
+              polygon.material.dispose();
+            }
+          });
+          
+          // Dispose of camera markers and their labels
+          cameraMarkers.forEach(marker => {
+            if (marker && marker.geometry) {
+              marker.geometry.dispose();
+            }
+            if (marker && marker.material) {
+              marker.material.dispose();
+            }
+            if (marker && marker.userData && marker.userData.label) {
+              marker.userData.label.remove();
             }
           });
           
@@ -803,7 +1332,7 @@ function SkyboxScene() {
         {/* Truman Branding */}
         <div className="absolute top-4 right-4 z-20">
           <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
-            <img src="../public/logo/logo.svg" alt="Truman State University" className="h-8 w-auto" />
+            <img src="/public/logo/logo.svg" alt="Truman State University" className="h-8 w-auto" />
           </div>
         </div>
         
@@ -857,3 +1386,15 @@ function SkyboxScene() {
   const rootElement = document.getElementById("root");
   const root = ReactDOM.createRoot(rootElement);
   root.render(<App />);
+  
+  // Smooth fade-out of transition overlay once 3D scene is ready
+  const transitionOverlay = document.getElementById('transition-overlay');
+  if (transitionOverlay) {
+    // Wait a bit for scene to initialize, then fade out
+    setTimeout(() => {
+      transitionOverlay.style.opacity = '0';
+      setTimeout(() => {
+        transitionOverlay.remove();
+      }, 1000); // Remove after fade-out completes
+    }, 2000); // Give 3D scene 2 seconds to start loading
+  }

@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
   
   <!-- Additional Styles for Multi-Skybox -->
   <style>
@@ -31,7 +31,7 @@
     .pixelated-rotate {
       width: 32px;
       height: 32px;
-      background-image: url('../public/icons/icons.png');
+      background-image: url('/public/icons/icons.png');
       background-size: 64px 32px;
       background-position: 0 0;
       background-repeat: no-repeat;
@@ -45,13 +45,26 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    
+    /* Transition overlay spinner animation */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-white">
+  <!-- Smooth fade-in overlay for transition -->
+  <div id="transition-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #510c76 0%, #7a1fb3 50%, #510c76 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 1; transition: opacity 1s ease-out;">
+    <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto mb-8" style="opacity: 0.9;">
+    <div class="loading-spinner" style="width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffd700; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p class="mt-6 text-xl" style="font-family: 'Playfair Display', serif;">Loading 3D environment...</p>
+  </div>
+  
   <div id="root" class="h-screen w-full"></div>
 
   <!-- Your React App -->
-  <script type="text/babel" src="app.js"></script>
+  <script type="text/babel" src="/app.js"></script>
   <!-- Add before closing </body> tag -->
 <div class="loading" id="loading">Loading 3D Environment...</div>
 
