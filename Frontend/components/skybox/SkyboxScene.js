@@ -1,0 +1,699 @@
+// SkyboxScene.js - Main 3D Skybox Scene Component
+// This component handles the Three.js scene, skybox rendering, annotations, and transitions
+
+function SkyboxScene() {
+  const mountRef = React.useRef(null);
+  const [currentSkybox, setCurrentSkybox] = React.useState(0);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+
+  // Get skybox configs from constants (loaded globally from constants.js)
+  const skyboxConfigs = window.skyboxConfigs;
+  
+  if (!skyboxConfigs) {
+    console.error('skyboxConfigs not found! Make sure constants.js is loaded.');
+  }
+
+  React.useEffect(() => {
+    // WebGL Detection and Error Handling
+    if (!window.WebGLRenderingContext) {
+      console.error('WebGL not supported');
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; text-align: center; z-index: 10000;"><h2>WebGL Not Supported</h2><p>Your browser does not support WebGL. Please use a modern browser.</p></div>';
+      document.body.appendChild(errorDiv);
+      return;
+    }
+
+    try {
+      // Scene setup
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      mountRef.current.appendChild(renderer.domElement);
+
+      // Hide global loading indicator if present
+      const loadingElement = document.getElementById('loading');
+      if (loadingElement) {
+        loadingElement.style.display = 'none';
+      }
+
+      // Orbit controls
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.25;
+      controls.autoRotate = true; // Enable auto rotation
+      controls.autoRotateSpeed = 1.0; // Rotation speed (1.0 = moderate speed)
+
+      // Skybox configuration (from constants)
+      const SKYBOX_RADIUS = window.SKYBOX_RADIUS || 500;
+      let skyboxMesh = null;
+      let skyboxMaterial = null;
+      
+      // Create skybox geometry and material
+      const skyboxGeometry = new THREE.SphereGeometry(SKYBOX_RADIUS, 64, 64);
+      skyboxMaterial = new THREE.MeshBasicMaterial({
+        side: THREE.BackSide,
+        depthWrite: false
+      });
+      skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+      scene.add(skyboxMesh);
+      
+      // Load skybox textures
+      const loader = new THREE.CubeTextureLoader();
+      const loadSkybox = (config, onLoad, onError) => {
+        console.log('Loading skybox:', config.name, 'with images:', config.images);
+        return loader.load(config.images, onLoad, undefined, onError);
+      };
+      
+      let currentTexture = loadSkybox(
+        skyboxConfigs[currentSkybox],
+        (texture) => {
+          console.log('Successfully loaded initial skybox:', skyboxConfigs[currentSkybox].name);
+          // Apply cube texture to skybox material using custom shader
+          const vertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+              vWorldPosition = worldPosition.xyz;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `;
+          
+          const fragmentShader = `
+            uniform samplerCube tCube;
+            varying vec3 vWorldPosition;
+            void main() {
+              vec3 direction = normalize(vWorldPosition - cameraPosition);
+              gl_FragColor = textureCube(tCube, direction);
+            }
+          `;
+          
+          const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+              tCube: { value: texture }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide,
+            depthWrite: false
+          });
+          
+          skyboxMesh.material.dispose();
+          skyboxMesh.material = shaderMaterial;
+          skyboxMaterial = shaderMaterial;
+          currentTexture = texture;
+        },
+        (error) => {
+          console.error('Failed to load initial skybox:', skyboxConfigs[currentSkybox].name, error);
+          // Fallback to a simple color
+          skyboxMaterial.color = new THREE.Color(0x87CEEB);
+        }
+      );
+
+      // Basic lighting
+      const light = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(light);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(0, 1, 1);
+      scene.add(directionalLight);
+
+      // Camera position
+      camera.position.z = 5;
+      
+      // Helper Functions
+      function getCameraDirectionPoint(camera, distance = 100) {
+        const vector = new THREE.Vector3(0, 0, -1);
+        vector.unproject(camera);
+        const dir = vector.sub(camera.position).normalize();
+        return camera.position.clone().add(dir.multiplyScalar(distance));
+      }
+      
+      // Annotation System
+      let annotationSprites = [];
+      let raycaster;
+      let mouse;
+      let isHovering = false;
+      let hoveredAnnotation = null;
+      
+      // Annotations configuration
+      const annotations = [
+        {
+          originalPosition: new THREE.Vector3(1.27, 0.53, -4.81),
+          title: "The Blue House",
+          description: "A charming blue house located in the Truman campus area. This building represents the residential life at Truman State University.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(1.99, 0.43, -4.57).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(1.99, 0.43, -2.57),
+          fov: 60,
+          color: "#3b82f6"
+        },
+        {
+          originalPosition: new THREE.Vector3(-45.6, -4.3, 20.5),
+          title: "The Red House",
+          description: "A beautiful red house that adds character to the campus landscape. This building showcases Truman's diverse architectural styles.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(-45.6, -4.3, 20.5).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(-4.56, -0.43, 0.05),
+          fov: 60,
+          color: "#ef4444"
+        },
+        {
+          originalPosition: new THREE.Vector3(7.3, 1.6, -49.4),
+          title: "The Right Goal Post",
+          description: "Part of Truman's athletic facilities, this goal post represents the university's commitment to sports and student activities.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(7.3, 1.6, -49.4).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(0.73, 0.16, -2.94),
+          fov: 60,
+          color: "#f59e0b"
+        },
+        {
+          originalPosition: new THREE.Vector3(49.9, -1.0, 2.4),
+          title: "The Red Barn",
+          description: "A historic red barn that adds rustic charm to the campus. This structure represents Truman's connection to its agricultural heritage.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(49.9, -1.0, 2.4).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(2.99, -0.10, 0.24),
+          fov: 60,
+          color: "#dc2626"
+        },
+        {
+          originalPosition: new THREE.Vector3(2.7, -1.3, 49.9),
+          title: "The Left Goal Post",
+          description: "The left goal post of Truman's football field, symbolizing the university's athletic spirit and school pride.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(2.7, -1.3, 49.9).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(0.27, -0.13, 2.99),
+          fov: 60,
+          color: "#f59e0b"
+        },
+        {
+          originalPosition: new THREE.Vector3(-46.5, 17.8, -4.9),
+          title: "The Football Field",
+          description: "Truman's main football field where Bulldogs play. This is the heart of Truman's athletic program and school spirit.",
+          visible: true,
+          cameraTarget: new THREE.Vector3(-46.5, 17.8, -4.9).normalize().multiplyScalar(SKYBOX_RADIUS),
+          cameraPosition: new THREE.Vector3(-2.65, 1.78, -0.49),
+          fov: 60,
+          color: "#10b981"
+        }
+      ];
+      
+      // Project annotations onto the sphere boundary (from constants)
+      const ANNOTATION_OFFSET = window.ANNOTATION_OFFSET || 2;
+      annotations.forEach(annotation => {
+        if (annotation.originalPosition) {
+          annotation.direction = annotation.originalPosition.clone().normalize();
+          annotation.position = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS - ANNOTATION_OFFSET);
+        }
+      });
+        
+      // Dialog box function
+      const showDialogBox = (annotation) => {
+        let dialogBox = document.getElementById('dialogBox');
+        if (!dialogBox) {
+          dialogBox = document.createElement('div');
+          dialogBox.id = 'dialogBox';
+          document.body.appendChild(dialogBox);
+        }
+        
+        const audioButtonId = `audio-btn-${Date.now()}`;
+        dialogBox.innerHTML = `
+          <div class="dialog-content">
+            <div class="dialog-image">
+              <div style="color: white; font-size: 48px; opacity: 0.8;">📍</div>
+            </div>
+            <div class="dialog-text">
+              <button class="close-btn" onclick="closeDialogBox()">×</button>
+              <h2 style="color: ${annotation.color};">${annotation.title}</h2>
+              <p>${annotation.description}</p>
+              <button id="${audioButtonId}" class="audio-btn" style="margin-top: 15px; background: ${annotation.color}; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-volume-up"></i> Listen
+              </button>
+            </div>
+          </div>
+        `;
+        
+        setTimeout(() => {
+          dialogBox.classList.add('show');
+          
+          const audioBtn = document.getElementById(audioButtonId);
+          if (audioBtn && 'speechSynthesis' in window) {
+            let isPlaying = false;
+            audioBtn.addEventListener('click', () => {
+              if (isPlaying) {
+                window.speechSynthesis.cancel();
+                audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                isPlaying = false;
+              } else {
+                const textToSpeak = `${annotation.title}. ${annotation.description}`;
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                utterance.onstart = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-mute"></i> Stop';
+                  isPlaying = true;
+                };
+                
+                utterance.onend = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                  isPlaying = false;
+                };
+                
+                utterance.onerror = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                  isPlaying = false;
+                };
+                
+                window.speechSynthesis.speak(utterance);
+              }
+            });
+          }
+        }, 10);
+        
+        window.closeDialogBox = () => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          dialogBox.classList.remove('show');
+          setTimeout(() => {
+            dialogBox.innerHTML = '';
+          }, 300);
+        };
+        
+        dialogBox.addEventListener('click', (e) => {
+          if (e.target === dialogBox) {
+            window.closeDialogBox();
+          }
+        });
+        
+        const escapeHandler = (e) => {
+          if (e.key === 'Escape') {
+            window.closeDialogBox();
+            document.removeEventListener('keydown', escapeHandler);
+          }
+        };
+        document.addEventListener('keydown', escapeHandler);
+      };
+      
+      const createAnnotationMarkers = () => {
+        annotations.forEach((annotation, index) => {
+          const position = annotation.position;
+          
+          const size = 64;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const radius = 12;
+          
+          ctx.clearRect(0, 0, size, size);
+          
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, radius - 3, 0, Math.PI * 2);
+          ctx.fillStyle = annotation.color;
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, 3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fill();
+          
+          const texture = new THREE.CanvasTexture(canvas);
+          
+          const material = new THREE.SpriteMaterial({ 
+            map: texture, 
+            transparent: true, 
+            depthTest: true,
+            depthWrite: false,
+            alphaTest: 0.1
+          });
+          const sprite = new THREE.Sprite(material);
+          sprite.position.copy(position);
+          sprite.scale.set(3.0, 3.0, 1);
+          sprite.renderOrder = 999;
+          sprite.userData = { annotationIndex: index, annotation: annotation };
+          scene.add(sprite);
+          annotationSprites.push(sprite);
+        });
+      };
+      
+      const onAnnotationHover = (sprite, hovering) => {
+        if (!sprite) return;
+        isHovering = hovering;
+        if (hovering) {
+          sprite.scale.set(3.5, 3.5, 1);
+          renderer.domElement.style.cursor = 'pointer';
+          hoveredAnnotation = sprite;
+          
+          const annotation = sprite.userData.annotation;
+          showTooltip(annotation.title);
+          
+          const annotationOverlay = document.getElementById('annotationMessage');
+          if (annotationOverlay) {
+            annotationOverlay.textContent = annotation.title;
+            annotationOverlay.classList.add('show');
+          }
+        } else {
+          sprite.scale.set(2.5, 2.5, 1);
+          renderer.domElement.style.cursor = 'default';
+          hoveredAnnotation = null;
+          hideTooltip();
+          
+          const annotationOverlay = document.getElementById('annotationMessage');
+          if (annotationOverlay) {
+            annotationOverlay.classList.remove('show');
+          }
+        }
+      };
+      
+      const onAnnotationClick = (sprite) => {
+        showDialogBox(sprite.userData.annotation);
+        
+        if (!sprite) return;
+        const originalScale = 2.5;
+        const startTime = Date.now();
+        const duration = 500;
+        const animateClick = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const bounce = Math.sin(progress * Math.PI);
+          const scale = originalScale + bounce * 0.5;
+          sprite.scale.set(scale, scale, 1);
+          if (progress < 1) requestAnimationFrame(animateClick);
+          else sprite.scale.set(originalScale, originalScale, 1);
+        };
+        requestAnimationFrame(animateClick);
+      };
+      
+      // Tooltip functions
+      const showTooltip = (title) => {
+        hideTooltip();
+        
+        const tooltip = document.createElement('div');
+        tooltip.id = 'annotation-tooltip';
+        tooltip.innerHTML = title;
+        tooltip.style.cssText = `
+          position: fixed;
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: bold;
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          z-index: 10000;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        `;
+        
+        document.body.appendChild(tooltip);
+        
+        const updateTooltipPosition = (event) => {
+          tooltip.style.left = (event.clientX + 15) + 'px';
+          tooltip.style.top = (event.clientY - 30) + 'px';
+        };
+        
+        document.addEventListener('mousemove', updateTooltipPosition);
+        tooltip.updatePosition = updateTooltipPosition;
+        
+        setTimeout(() => {
+          tooltip.style.opacity = '1';
+        }, 10);
+      };
+      
+      const hideTooltip = () => {
+        const tooltip = document.getElementById('annotation-tooltip');
+        if (tooltip) {
+          if (tooltip.updatePosition) {
+            document.removeEventListener('mousemove', tooltip.updatePosition);
+          }
+          tooltip.remove();
+        }
+      };
+      
+      const onMouseMove = (event) => {
+        if (!raycaster || !mouse) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        
+        let hovering = false;
+        
+        if (annotationSprites.length > 0) {
+          const intersects = raycaster.intersectObjects(annotationSprites, true);
+          
+          if (intersects.length > 0) {
+            const intersectedSprite = intersects[0].object;
+            if (hoveredAnnotation !== intersectedSprite) {
+              if (hoveredAnnotation) {
+                onAnnotationHover(hoveredAnnotation, false);
+              }
+              onAnnotationHover(intersectedSprite, true);
+            }
+            hovering = true;
+          }
+        }
+        
+        if (!hovering && hoveredAnnotation) {
+          onAnnotationHover(hoveredAnnotation, false);
+          renderer.domElement.style.cursor = 'default';
+          hideTooltip();
+          hoveredAnnotation = null;
+        }
+        
+        try {
+          if (skyboxMesh) {
+            const skyboxIntersects = raycaster.intersectObject(skyboxMesh);
+            
+            if (skyboxIntersects.length > 0) {
+              const intersectionPoint = skyboxIntersects[0].point;
+              window.lastTargetPosition = intersectionPoint;
+            } else {
+              const ndc = new THREE.Vector3(mouse.x, mouse.y, -1);
+              ndc.unproject(camera);
+              const dir = ndc.sub(camera.position).normalize();
+              const targetPoint = camera.position.clone().add(dir.multiplyScalar(SKYBOX_RADIUS));
+              window.lastTargetPosition = targetPoint;
+            }
+          }
+        } catch (error) {
+          console.warn('Target coordinate calculation error:', error);
+        }
+      };
+      
+      const onMouseClick = (event) => {
+        if (hoveredAnnotation && hoveredAnnotation.scale) {
+          if (isHovering) onAnnotationClick(hoveredAnnotation);
+        }
+      };
+      
+      // Initialize raycaster, mouse, and create markers
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+      createAnnotationMarkers();
+      
+      renderer.domElement.addEventListener('mousemove', onMouseMove);
+      renderer.domElement.addEventListener('click', onMouseClick);
+
+      // Skybox transition function
+      const transitionToSkybox = (skyboxIndex) => {
+        console.log(`Transitioning to skybox ${skyboxIndex}: ${skyboxConfigs[skyboxIndex].name}`);
+        setIsTransitioning(true);
+        setCurrentSkybox(skyboxIndex);
+        const newConfig = skyboxConfigs[skyboxIndex];
+        
+        const fadeOut = () => {
+          const fadeMaterial = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            transparent: true,
+            opacity: 0
+          });
+          const fadeGeometry = new THREE.PlaneGeometry(2, 2);
+          const fadeMesh = new THREE.Mesh(fadeGeometry, fadeMaterial);
+          scene.add(fadeMesh);
+          
+          const fadeIn = () => {
+            const fadeInterval = setInterval(() => {
+              fadeMaterial.opacity += 0.08;
+              if (fadeMaterial.opacity >= 1) {
+                clearInterval(fadeInterval);
+                
+                try {
+                  loadSkybox(
+                    newConfig,
+                    (newTexture) => {
+                      console.log(`Successfully loaded skybox: ${newConfig.name}`);
+                      if (skyboxMesh && skyboxMaterial) {
+                        if (skyboxMaterial.uniforms && skyboxMaterial.uniforms.tCube) {
+                          skyboxMaterial.uniforms.tCube.value = newTexture;
+                        } else {
+                          const vertexShader = `
+                            varying vec3 vWorldPosition;
+                            void main() {
+                              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                              vWorldPosition = worldPosition.xyz;
+                              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                            }
+                          `;
+                          
+                          const fragmentShader = `
+                            uniform samplerCube tCube;
+                            varying vec3 vWorldPosition;
+                            void main() {
+                              vec3 direction = normalize(vWorldPosition - cameraPosition);
+                              gl_FragColor = textureCube(tCube, direction);
+                            }
+                          `;
+                          
+                          const newMaterial = new THREE.ShaderMaterial({
+                            uniforms: {
+                              tCube: { value: newTexture }
+                            },
+                            vertexShader: vertexShader,
+                            fragmentShader: fragmentShader,
+                            side: THREE.BackSide,
+                            depthWrite: false
+                          });
+                          skyboxMesh.material.dispose();
+                          skyboxMesh.material = newMaterial;
+                          skyboxMaterial = newMaterial;
+                        }
+                      }
+                      currentTexture = newTexture;
+                      
+                      const fadeOutInterval = setInterval(() => {
+                        fadeMaterial.opacity -= 0.08;
+                        if (fadeMaterial.opacity <= 0) {
+                          clearInterval(fadeOutInterval);
+                          scene.remove(fadeMesh);
+                          fadeGeometry.dispose();
+                          fadeMaterial.dispose();
+                          setIsTransitioning(false);
+                          console.log(`Transition completed to: ${newConfig.name}`);
+                        }
+                      }, 30);
+                    },
+                    (error) => {
+                      console.error(`Failed to load skybox: ${newConfig.name}`, error);
+                      setIsTransitioning(false);
+                      scene.remove(fadeMesh);
+                      fadeGeometry.dispose();
+                      fadeMaterial.dispose();
+                    }
+                  );
+                } catch (error) {
+                  console.error(`Error loading skybox: ${newConfig.name}`, error);
+                  setIsTransitioning(false);
+                  scene.remove(fadeMesh);
+                  fadeGeometry.dispose();
+                  fadeMaterial.dispose();
+                }
+              }
+            }, 30);
+          };
+          
+          setTimeout(fadeIn, 50);
+        };
+        
+        fadeOut();
+      };
+
+      // Animation loop
+      let animationId;
+      const animate = () => {
+        animationId = requestAnimationFrame(animate);
+        controls.update();
+        
+        annotationSprites.forEach(sprite => {
+          sprite.lookAt(camera.position);
+        });
+        
+        if (hoveredAnnotation && isHovering) {
+          const scale = 2.5 + Math.sin(Date.now() * 0.005) * 0.5;
+          hoveredAnnotation.scale.set(scale, scale, 1);
+        }
+        
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      // Handle resize
+      const handleResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener("resize", handleResize);
+
+      // Expose transition function globally
+      window.transitionToSkybox = transitionToSkybox;
+      window.getCurrentSkybox = () => currentSkybox;
+      window.getSkyboxConfigs = () => skyboxConfigs;
+
+      // Cleanup
+      return () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        
+        hideTooltip();
+        
+        window.removeEventListener("resize", handleResize);
+        if (renderer && renderer.domElement) {
+          renderer.domElement.removeEventListener('mousemove', onMouseMove);
+          renderer.domElement.removeEventListener('click', onMouseClick);
+        }
+        
+        if (renderer) {
+          renderer.dispose();
+        }
+        if (currentTexture) {
+          currentTexture.dispose();
+        }
+        if (skyboxMesh) {
+          skyboxMesh.material.dispose();
+          skyboxMesh.geometry.dispose();
+        }
+        annotationSprites.forEach(sprite => {
+          if (sprite && sprite.material) {
+            sprite.material.map?.dispose();
+            sprite.material.dispose();
+          }
+        });
+        
+        if (mountRef.current && renderer && renderer.domElement) {
+          mountRef.current.removeChild(renderer.domElement);
+        }
+      };
+    } catch (error) {
+      console.error('Error initializing Three.js scene:', error);
+      const errorDiv = document.createElement('div');
+      errorDiv.innerHTML = '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; text-align: center; z-index: 10000;"><h2>3D Scene Error</h2><p>Failed to initialize 3D environment. Please refresh the page.</p></div>';
+      document.body.appendChild(errorDiv);
+    }
+  }, [currentSkybox, isTransitioning]);
+
+  return <div ref={mountRef} className="absolute inset-0" />;
+}
+
+// Make available globally
+window.SkyboxScene = SkyboxScene;
+

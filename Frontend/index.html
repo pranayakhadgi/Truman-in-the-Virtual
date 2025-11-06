@@ -26,6 +26,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Google Maps API - No callback, we'll initialize manually when needed -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBNg6CCs715j47H9UsyRx9hniIvEofzLOA" async defer></script>
 
   <!-- Styles -->
   <link rel="stylesheet" href="/style.css">
@@ -67,7 +70,20 @@
   </div>
   
   <div id="root" class="h-screen w-full"></div>
+  
+  <!-- Map Container (hidden by default) -->
+  <div id="map" style="display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; z-index: 9999;"></div>
 
+  <!-- Load configuration and building data before main app -->
+  <script src="/config.js"></script>
+  <script src="/BuildingData.js"></script>
+  <script src="/MapView.js"></script>
+  
+  <!-- Load skybox components -->
+  <script type="text/babel" src="/components/skybox/constants.js"></script>
+  <script type="text/babel" src="/components/skybox/SkyboxScene.js"></script>
+  <script type="text/babel" src="/components/skybox/UIComponents.js"></script>
+  
   <!-- Your React App -->
   <script type="text/babel" src="/app.js"></script>
   <!-- Add before closing </body> tag -->
