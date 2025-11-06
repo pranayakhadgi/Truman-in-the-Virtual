@@ -23,15 +23,18 @@ The Truman Virtual Tour addresses the challenge of providing accessible, engagin
 ## Screenshots
 
 ### Welcome Page
-![Welcome Page](screenshots/welcome-page.png)
+<img width="1396" height="785" alt="Screen Shot 2025-11-06 at 12 17 46 PM" src="https://github.com/user-attachments/assets/f9e11bd2-666c-4415-8441-2827b730f9e8" />
+
 *Interactive welcome page with campus slideshow and tour initiation*
 
 ### Skybox Environment - The Quad
-![The Quad](screenshots/skybox-quad.png)
+<img width="1396" height="787" alt="Screen Shot 2025-11-06 at 12 18 18 PM" src="https://github.com/user-attachments/assets/719e796f-3578-40d7-b7c2-6fdea13a85d6" />
+
 *Immersive 3D environment showing Truman's iconic Quad with interactive annotations*
 
 ### Application Redirect
-![Apply Now](screenshots/apply-redirect.png)
+<img width="1395" height="785" alt="Screen Shot 2025-11-06 at 12 18 27 PM" src="https://github.com/user-attachments/assets/8bdedea2-cc8b-4c09-9c74-1eb82fbea077" />
+
 *Seamless redirect to Truman's online application portal*
 
 ## Quick Start
@@ -69,6 +72,9 @@ truman-virtual-tour/
 **Developers:**
 - Pranaya Khadgi Shahi
 - Ali Musterih Addikebir
+
+**Business pitch:**
+- Mayowa Esan
 
 **Professor:**
 - Dr. Kafi Rahman (The Truman CS Department)
