@@ -1,246 +1,70 @@
-# Truman Virtual Tour - Immersive 3D Campus Experience
+# Truman Virtual Tour
 
-## Just a prototype deployment sample!!
-<img width="1398" height="733" alt="Screen Shot 2025-10-14 at 1 27 56 AM" src="https://github.com/user-attachments/assets/a704adcb-9ed5-4fe2-83fa-1632bcce73f8" />
+An immersive 3D virtual tour application for Truman State University that allows prospective students and visitors to explore the campus from anywhere in the world through an interactive browser-based 3D environment.
 
-## The 3D skybox feature (used a demo 6 axis images as a sample placeholder :) )
-<img width="1396" height="729" alt="Screen Shot 2025-10-14 at 1 30 01 AM" src="https://github.com/user-attachments/assets/c8f4105d-3555-4f31-9bfc-b4ef15b7adee" />
+## What Problem Does This Solve?
 
-##Added annotations on all the 6 sides, they're small white dotted placed at the center of each square of the cube interior
-<img width="1396" height="818" alt="Screen Shot 2025-10-16 at 10 04 20 PM" src="https://github.com/user-attachments/assets/1131fdf5-20c2-4c48-a060-23ba1437b635" />
+The Truman Virtual Tour addresses the challenge of providing accessible, engaging campus exploration for prospective students who cannot physically visit the campus. It offers:
 
+- **Remote Campus Exploration**: Experience Truman's campus locations in 360° immersive environments
+- **Interactive Learning**: Click on annotations to learn about key campus locations and features
+- **Accessibility**: Text-to-speech narration and intuitive navigation for all users
+- **Seamless Application Process**: Direct integration with Truman's application portal
 
+## Features
 
-## 🎓 Project Overview
-An immersive 3D virtual tour application for Truman State University, allowing prospective students and visitors to explore the campus from anywhere in the world through a browser-based 3D environment.
+- **Interactive 3D Skybox Environments**: Explore "Thousand Hills in Truman" and "The Quad" in full 360° views
+- **Auto-Rotating Camera**: Smooth automatic rotation for hands-free exploration
+- **Interactive Annotations**: Click on location markers to learn about campus features
+- **Text-to-Speech Narration**: Female voice narration for each scene
+- **Welcome Flow**: Multi-step form to collect visitor information and interests
+- **Direct Application Link**: Quick access to Truman's application portal
 
-## 📁 Project Structure
-```
-truman-virtual-tour/
-├── Frontend/                 # Frontend application files
-│   ├── welcome.html         # Welcome page with slideshow
-│   ├── index.html           # 3D virtual tour experience
-│   ├── app.js              # React + Three.js application
-│   └── style.css           # Custom styling
-├── Backend/                 # Backend services
-│   ├── server.js           # Express.js server
-│   └── package.json        # Backend dependencies
-├── Database/                # Database schemas and configurations
-│   ├── schema.sql          # Database schema
-│   └── README.md           # Database documentation
-├── public/                  # Static assets
-│   ├── logo/               # Truman logos and branding
-│   ├── icons/              # Pixelated icons and animations
-│   └── images/             # Campus photos and skybox images
-└── README.md               # This file
-```
-
-## 🚀 Features
+## Screenshots
 
 ### Welcome Page
-- **Truman-themed slideshow** with campus images
-- **Elegant typography** with Cinzel and Playfair Display fonts
-- **Pixelated loading animation** using Hana Caraka icons
-- **Responsive design** for all devices
-- **Smooth animations** and transitions
+![Welcome Page](screenshots/welcome-page.png)
+*Interactive welcome page with campus slideshow and tour initiation*
 
-### 3D Virtual Tour
-- **Interactive 3D skybox** using Three.js
-- **Multi-skybox system** with smooth transitions
-- **Media player controls** for navigation
-- **Mouse navigation** with OrbitControls
-- **Real-time 3D rendering** in browser
-- **Truman branding** integration
-- **Cross-platform compatibility**
-- **Loading animations** during transitions
+### Skybox Environment - The Quad
+![The Quad](screenshots/skybox-quad.png)
+*Immersive 3D environment showing Truman's iconic Quad with interactive annotations*
 
-### Interactive Annotation System
-- **6 Clickable Annotations** positioned at skybox cube edges (front, back, left, right, top, bottom)
-- **Smooth Camera Transitions** - Cinematic 1.5-second animations when clicking annotations
-- **Professional UI Panels** - Animated detail panels with contextual information
-- **Return to Overview** - Seamless navigation back to center position
-- **2D Billboard Rendering** - Annotations always face camera with proper depth testing
-- **Hover Effects** - Visual feedback with scale animations and cursor changes
-- **Performance Optimized** - Efficient sprite rendering and memory management
+### Application Redirect
+![Apply Now](screenshots/apply-redirect.png)
+*Seamless redirect to Truman's online application portal*
 
-### Technical Features
-- **React.js** for component-based architecture
-- **Three.js** for 3D graphics rendering
-- **TailwindCSS** for responsive styling
-- **Express.js** backend server
-- **Vercel deployment** ready
+## Quick Start
 
-## 🛠️ Technologies Used
-
-### Frontend
-- **HTML5** - Semantic markup
-- **CSS3** - Advanced styling and animations
-- **JavaScript (ES6+)** - Modern JavaScript features
-- **React 18** - Component-based UI
-- **Three.js** - 3D graphics library
-- **TailwindCSS** - Utility-first CSS framework
-- **Font Awesome** - Icon library
-
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web application framework
-- **CORS** - Cross-origin resource sharing
-- **Helmet** - Security middleware
-- **dotenv** - Environment variable management
-
-### Database (Future)
-- **PostgreSQL** - Primary database
-- **Redis** - Session storage
-- **MongoDB** - Analytics data
-- **Elasticsearch** - Search functionality
-
-## 📦 Installation & Setup
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn package manager
-- Modern web browser with WebGL support
-
-### Frontend Setup
 ```bash
-# Navigate to project directory
-cd truman-virtual-tour
-
-# Install frontend dependencies (if using npm)
-npm install
-
-# Start development server
-python3 dev-server.py
-# OR
-node Backend/server.js
-```
-
-### Backend Setup
-```bash
-# Navigate to backend directory
-cd Backend
-
-# Install backend dependencies
+# Install dependencies
 npm install
 
 # Start backend server
 npm start
-# OR for development
-npm run dev
+
+# Access the application
+# Open http://localhost:3000 in your browser
 ```
 
-## 🌐 Deployment
+## Project Structure
 
-### Vercel Deployment
-1. Connect GitHub repository to Vercel
-2. Configure build settings:
-   - Framework: Other
-   - Root Directory: Frontend/
-   - Build Command: (leave empty)
-   - Output Directory: Frontend/
-3. Deploy automatically on git push
-
-### Manual Deployment
-```bash
-# Build for production
-npm run build
-
-# Deploy to your hosting service
-# Files are ready in Frontend/ directory
+```
+truman-virtual-tour/
+├── Backend/          # Express.js server and API
+├── Frontend/         # React + Three.js application
+├── public/           # Static assets (images, logos, skyboxes)
+└── README.md         # This file
 ```
 
-## 📊 Project Timeline & Updates
+## Technologies
 
-### October 14, 2025
-- ✅ **Initial project setup** - Created basic 3D skybox experience
-- ✅ **Welcome page implementation** - Added Truman-themed slideshow
-- ✅ **Font improvements** - Implemented elegant typography
-- ✅ **Pixelated animations** - Added Hana Caraka icons loading animation
-- ✅ **Project reorganization** - Structured into Frontend/Backend/Database/Public folders
-- ✅ **Path refactoring** - Updated all file paths for new structure
-- ✅ **Comprehensive documentation** - Created detailed README
-- ✅ **Multi-skybox system** - Implemented smooth transitions between Truman Campus and Football Field
-- ✅ **Media player controls** - Added Previous/Next navigation buttons
-- ✅ **Image optimization** - Renamed football field images to prevent conflicts
-- ✅ **Transition debugging** - Enhanced error handling and console logging
-- ✅ **Loading indicators** - Improved pixelated loading animations during transitions
-- ✅ **Distinct skybox images** - Fixed to use different image sets for each environment
-- ✅ **Button click events** - Fixed navigation button functionality with proper event handling
-- ✅ **State management** - Improved transition state handling and debugging
+- **Frontend**: React, Three.js, TailwindCSS
+- **Backend**: Node.js, Express.js, MongoDB
+- **3D Rendering**: Three.js WebGL
+- **Text-to-Speech**: Web Speech API
 
-### October 16, 2025 - Major Feature Update
-- ✅ **Interactive Annotation System** - Added 6 clickable annotations positioned at skybox cube edges
-- ✅ **Smooth Camera Transitions** - Implemented cinematic camera animations when clicking annotations
-- ✅ **Professional UI Panels** - Created animated detail panels with return-to-overview functionality
-- ✅ **2D Billboard Annotations** - Annotations always face camera with proper depth testing
-- ✅ **Enhanced User Experience** - Replaced static popups with immersive camera movements
-- ✅ **Monocursive Font Integration** - Added professional typography for annotation content
-- ✅ **Responsive Design** - Annotations work seamlessly across different screen sizes
-- ✅ **Performance Optimization** - Efficient sprite rendering and memory management
-- ✅ **Code Cleanup** - Removed unused dialog box functions and streamlined architecture
-
-### Future Updates
-- 🔄 **Database integration** - User analytics and feedback
-- 🔄 **Enhanced 3D features** - Multiple campus locations
-- 🔄 **Mobile optimization** - Touch controls for mobile devices
-- 🔄 **Performance optimization** - Faster loading and rendering
-- 🔄 **Accessibility features** - Screen reader support and keyboard navigation
-
-## 🎯 Usage Instructions
-
-### For Visitors
-1. **Open welcome page** - View Truman campus slideshow
-2. **Click "Start Virtual Tour"** - Enter 3D experience
-3. **Navigate with mouse** - Look around, zoom, pan
-4. **Click annotations** - Small white dots for immersive camera transitions
-5. **Explore all 6 directions** - Front, back, left, right, top, bottom annotations
-6. **Return to overview** - Use "Return to Overview" button after clicking annotations
-7. **Switch skyboxes** - Use Previous/Next buttons to explore different environments
-8. **Use back button** - Return to welcome page
-
-### For Developers
-1. **Clone repository** - Get latest code
-2. **Install dependencies** - Set up development environment
-3. **Run development server** - Test locally
-4. **Make changes** - Update code as needed
-5. **Deploy changes** - Push to GitHub for auto-deployment
-
-## 🔧 Development Guidelines
-
-### Code Standards
-- **ES6+ JavaScript** - Use modern JavaScript features
-- **Component-based architecture** - Follow React best practices
-- **Responsive design** - Mobile-first approach
-- **Performance optimization** - Minimize bundle size
-- **Accessibility** - WCAG 2.1 compliance
-
-### File Naming
-- **HTML files** - lowercase with hyphens (welcome.html)
-- **JavaScript files** - camelCase (app.js)
-- **CSS files** - lowercase with hyphens (style.css)
-- **Image files** - descriptive names (truman_clocktower.jpg)
-
-## 📝 Contributing
-
-### How to Contribute
-1. **Fork the repository** - Create your own copy
-2. **Create feature branch** - Work on new features
-3. **Follow coding standards** - Maintain code quality
-4. **Test thoroughly** - Ensure everything works
-5. **Submit pull request** - Share your improvements
-
-### Development Workflow
-1. **Plan changes** - Document what you're building
-2. **Implement features** - Write clean, efficient code
-3. **Test functionality** - Verify everything works
-4. **Update documentation** - Keep README current
-5. **Deploy changes** - Push to production
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Team
+## Team
 
 **Developers:**
 - Pranaya Khadgi Shahi
@@ -253,19 +77,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Truman State University
 - Computer Science Department
 
-## 📞 Support
+## Links
 
-For questions or support, please contact:
-- **Email:** pranaya.khadgi99@gmail.com
-## 🔗 Links
-
-- **Live Demo:** trumaninthevirtual.vercel.app
-- **GitHub Repository:** https://github.com/pranayakhadgi/Truman-in-the-Virtual
-- **Documentation:** (https://github.com/pranayakhadgi/Truman-in-the-Virtual/edit/main/README.md)
-- **Truman State University:** https://www.truman.edu/
+- **Live Demo**: [trumaninthevirtual.vercel.app](https://trumaninthevirtual.vercel.app)
+- **GitHub Repository**: [Truman-in-the-Virtual](https://github.com/pranayakhadgi/Truman-in-the-Virtual)
+- **Truman State University**: [www.truman.edu](https://www.truman.edu/)
 
 ---
 
-**Last Updated:** October 16, 2025  
-**Version:** 1.1.0  
-**Status:** Active Development
+**Last Updated:** January 2025  
+**Version:** 2.0.0  
+**Status:** Production Ready

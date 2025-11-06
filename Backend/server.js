@@ -53,11 +53,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize());
 
-// Static files
-app.use(express.static(path.join(__dirname, '../Frontend')));
-app.use('/public', express.static(path.join(__dirname, '../public')));
-
-// API Routes
+// API Routes (must come before static files)
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
   const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
@@ -106,7 +102,7 @@ app.get('/api/analytics', async (req, res) => {
   }
 });
 
-// Serve frontend files
+// Frontend route handlers (must come BEFORE static files to take precedence)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/welcome.html'));
 });
@@ -123,10 +119,19 @@ app.get('/transition', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/transition.html'));
 });
 
+// Placeholder route (interim page between welcome and skybox)
+app.get('/placeholder', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/placeholder.html'));
+});
+
 // Handle favicon requests (prevent 404 errors)
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end(); // No Content
 });
+
+// Static files (must come AFTER route handlers to avoid serving index.html for /)
+app.use(express.static(path.join(__dirname, '../Frontend')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Error handling
 app.use((err, req, res, next) => {

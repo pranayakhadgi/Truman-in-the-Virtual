@@ -313,16 +313,9 @@
             }, 10);
             
             // Redirect after smooth transition
-            // Check if we're on backend server (port 3000) or Live Server (port 5500)
+            // Always use backend route (Express server on port 3000)
             setTimeout(() => {
-                const currentPort = window.location.port;
-                if (currentPort === '3000' || currentPort === '') {
-                    // Backend server - use route
-                    window.location.href = '/tour';
-                } else {
-                    // Live Server or other - use direct file path
-                    window.location.href = '/index.html';
-                }
+                window.location.href = '/placeholder';
             }, 1500);
         }
         

@@ -7,19 +7,19 @@ function SkyboxScene() {
     // Skybox configurations
     const skyboxConfigs = [
       {
-        name: "Truman Campus",
+        name: "Thousand Hills in Truman",
         images: [
-          "/public/images/posx.jpg", "/public/images/negx.jpg",
-          "/public/images/posy.jpg", "/public/images/negy.jpg",
-          "/public/images/posz.jpg", "/public/images/negz.jpg"
+          "/public/field-skyboxes 2/FishPond/posx.jpg", "/public/field-skyboxes 2/FishPond/negx.jpg",
+          "/public/field-skyboxes 2/FishPond/posy.jpg", "/public/field-skyboxes 2/FishPond/negy.jpg",
+          "/public/field-skyboxes 2/FishPond/posz.jpg", "/public/field-skyboxes 2/FishPond/negz.jpg"
         ]
       },
       {
-        name: "Football Field",
+        name: "The Quad",
         images: [
-          "/public/field-skyboxes 2/Footballfield2/posx.jpg", "/public/field-skyboxes 2/Footballfield2/negx.jpg",
-          "/public/field-skyboxes 2/Footballfield2/posy.jpg", "/public/field-skyboxes 2/Footballfield2/negy.jpg",
-          "/public/field-skyboxes 2/Footballfield2/posz.jpg", "/public/field-skyboxes 2/Footballfield2/negz.jpg"
+          "/public/field-skyboxes 2/Sorsele3/posx.jpg", "/public/field-skyboxes 2/Sorsele3/negx.jpg",
+          "/public/field-skyboxes 2/Sorsele3/posy.jpg", "/public/field-skyboxes 2/Sorsele3/negy.jpg",
+          "/public/field-skyboxes 2/Sorsele3/posz.jpg", "/public/field-skyboxes 2/Sorsele3/negz.jpg"
         ]
       }
     ];
@@ -57,13 +57,15 @@ function SkyboxScene() {
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.25;
+      controls.autoRotate = true; // Enable auto rotation
+      controls.autoRotateSpeed = 1.0; // Rotation speed (1.0 = moderate speed)
   
-      // Skybox configuration - using actual mesh geometry instead of scene.background
+      // Skybox configuration
       const SKYBOX_RADIUS = 500;
       let skyboxMesh = null;
       let skyboxMaterial = null;
       
-      // Create skybox geometry and material (will be updated with texture)
+      // Create skybox geometry and material
       const skyboxGeometry = new THREE.SphereGeometry(SKYBOX_RADIUS, 64, 64);
       skyboxMaterial = new THREE.MeshBasicMaterial({
         side: THREE.BackSide,
@@ -72,7 +74,7 @@ function SkyboxScene() {
       skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       scene.add(skyboxMesh);
       
-      // Load initial skybox with improved error handling
+      // Load skybox textures
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
         console.log('Loading skybox:', config.name, 'with images:', config.images);
@@ -84,7 +86,6 @@ function SkyboxScene() {
         (texture) => {
           console.log('Successfully loaded initial skybox:', skyboxConfigs[currentSkybox].name);
           // Apply cube texture to skybox material using custom shader
-          // Cube textures need proper sampling - use ShaderMaterial for direct display
           const vertexShader = `
             varying vec3 vWorldPosition;
             void main() {
@@ -105,8 +106,7 @@ function SkyboxScene() {
           
           const shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
-              tCube: { value: texture },
-              cameraPosition: { value: camera.position }
+              tCube: { value: texture }
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
@@ -152,8 +152,6 @@ function SkyboxScene() {
       let mouse;
       let isHovering = false;
       let hoveredAnnotation = null;
-      let interactivePolygons = [];
-      let cameraMarkers = [];
       
       // Annotations: Store original positions, convert to direction vectors for skybox placement
       // Positions are at various distances from origin - we'll normalize them to get directions
@@ -167,9 +165,7 @@ function SkyboxScene() {
           cameraTarget: new THREE.Vector3(1.99, 0.43, -4.57).normalize().multiplyScalar(SKYBOX_RADIUS),
           cameraPosition: new THREE.Vector3(1.99, 0.43, -2.57), // Keep camera close
           fov: 60,
-          color: "#3b82f6",
-          createPolygon: true, // Auto-generate polygon for this annotation
-          polygonSize: 2.5 // Size of the auto-generated polygon
+          color: "#3b82f6"
         },
         {
           // Original position was (-4.56 * 10, -0.43 * 10, 2.05 * 10) = (-45.6, -4.3, 20.5)
@@ -228,284 +224,122 @@ function SkyboxScene() {
         }
       ];
       
-      // Convert original positions to direction vectors for skybox placement
+      // Project annotations onto the sphere boundary (skybox surface)
+      // Camera is at (0,0,0) inside the sphere, so annotations must be on the interior surface
+      // Place them slightly inside the sphere boundary to ensure visibility
+      const ANNOTATION_OFFSET = 2; // Slightly inside sphere to avoid z-fighting
       annotations.forEach(annotation => {
         if (annotation.originalPosition) {
-          // Normalize the original position to get direction, then scale to skybox radius
+          // Get direction vector from original position
           annotation.direction = annotation.originalPosition.clone().normalize();
+          // Project onto sphere interior surface (slightly inside boundary for visibility)
+          annotation.position = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS - ANNOTATION_OFFSET);
         }
-      });
-      
-      // =============================================================
-      // 3D POLYGON EXPERIMENT: RIGHT GOAL POST ANNOTATION TEST
-      // =============================================================
-      
-      // Utility: Create 2D Polygon Geometry on Spherical Surface
-      // Projects 3D points onto a sphere surface, creates 2D shape, then maps back to sphere
-      function createAnnotationPolygon(points3D, color = 0xff8800, name = 'Zone', annotationData = null) {
-        // Step 1: Find centroid of points and normalize to sphere surface
-        const centroid = new THREE.Vector3();
-        points3D.forEach(p => centroid.add(p));
-        centroid.divideScalar(points3D.length);
-        centroid.normalize().multiplyScalar(SKYBOX_RADIUS);
-        
-        // Step 2: Create tangent plane coordinate system at centroid
-        const normal = centroid.clone().normalize();
-        const tangent1 = new THREE.Vector3();
-        const tangent2 = new THREE.Vector3();
-        
-        // Choose perpendicular vector for tangent1
-        if (Math.abs(normal.x) > 0.9) {
-          tangent1.set(0, 1, 0);
-        } else {
-          tangent1.set(1, 0, 0);
-        }
-        
-        // Create orthogonal tangent vectors
-        tangent1.cross(normal).normalize();
-        tangent2.crossVectors(normal, tangent1).normalize();
-        
-        // Step 3: Project 3D points onto tangent plane (2D coordinates)
-        const projectedPoints = points3D.map(point => {
-          const localPoint = point.clone().sub(centroid);
-          return new THREE.Vector2(
-            localPoint.dot(tangent1),
-            localPoint.dot(tangent2)
-          );
         });
         
-        // Step 4: Create 2D shape
-        const shape = new THREE.Shape();
-        if (projectedPoints.length > 0) {
-          shape.moveTo(projectedPoints[0].x, projectedPoints[0].y);
-          for (let i = 1; i < projectedPoints.length; i++) {
-            shape.lineTo(projectedPoints[i].x, projectedPoints[i].y);
-          }
-          shape.lineTo(projectedPoints[0].x, projectedPoints[0].y); // Close the shape
-        }
-        
-        // Step 5: Generate geometry from shape
-        const geometry = new THREE.ShapeGeometry(shape);
-        
-        // Step 6: Transform vertices back to sphere surface
-        const positions = geometry.attributes.position;
-        for (let i = 0; i < positions.count; i++) {
-          const x = positions.getX(i);
-          const y = positions.getY(i);
-          
-          // Convert from 2D plane coordinates back to 3D
-          const worldPos = centroid.clone()
-            .add(tangent1.clone().multiplyScalar(x))
-            .add(tangent2.clone().multiplyScalar(y));
-          
-          // Project onto sphere surface (slightly inside to avoid z-fighting)
-          worldPos.normalize().multiplyScalar(SKYBOX_RADIUS - 0.5);
-          
-          positions.setXYZ(i, worldPos.x, worldPos.y, worldPos.z);
-        }
-        
-        positions.needsUpdate = true;
-        geometry.computeVertexNormals();
-        
-        // Step 7: Create material
-        const material = new THREE.MeshBasicMaterial({
-          color: color,
-          opacity: 0.25,
-          transparent: true,
-          side: THREE.DoubleSide,
-          depthTest: true,
-          depthWrite: false
-        });
-        
-        // Step 8: Create mesh
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.name = name;
-        mesh.renderOrder = 997; // Render before sprites but after skybox
-        mesh.userData.defaultOpacity = 0.25;
-        mesh.userData.hoverOpacity = 0.7;
-        if (annotationData) {
-          mesh.userData.annotation = annotationData;
-        }
-        
-        scene.add(mesh);
-        interactivePolygons.push(mesh);
-        return mesh;
+      // Dialog box function to show annotation details
+      const showDialogBox = (annotation) => {
+        // Get or create dialog box element
+        let dialogBox = document.getElementById('dialogBox');
+        if (!dialogBox) {
+          dialogBox = document.createElement('div');
+          dialogBox.id = 'dialogBox';
+          document.body.appendChild(dialogBox);
       }
       
-      // Create camera position markers with labels
-      function createCameraMarkers(positions, color = 0xff0000) {
-        const markers = [];
-        positions.forEach((pos, i) => {
-          // Create sphere marker
-          const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-          const markerMaterial = new THREE.MeshBasicMaterial({ 
-            color: color,
-            transparent: true,
-            opacity: 0.9
-          });
-          const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-          marker.position.copy(pos);
-          marker.renderOrder = 998;
-          scene.add(marker);
+        // Create dialog content with audio button
+        const audioButtonId = `audio-btn-${Date.now()}`;
+        dialogBox.innerHTML = `
+          <div class="dialog-content">
+            <div class="dialog-image">
+              <div style="color: white; font-size: 48px; opacity: 0.8;">📍</div>
+            </div>
+            <div class="dialog-text">
+              <button class="close-btn" onclick="closeDialogBox()">×</button>
+              <h2 style="color: ${annotation.color};">${annotation.title}</h2>
+              <p>${annotation.description}</p>
+              <button id="${audioButtonId}" class="audio-btn" style="margin-top: 15px; background: ${annotation.color}; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-volume-up"></i> Listen
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Show dialog with animation
+        setTimeout(() => {
+          dialogBox.classList.add('show');
           
-          // Create label element
-          const label = document.createElement('div');
-          label.textContent = `Cam ${i + 1}`;
-          label.style.position = 'absolute';
-          label.style.color = '#ff4444';
-          label.style.fontSize = '12px';
-          label.style.fontWeight = 'bold';
-          label.style.fontFamily = 'monospace';
-          label.style.background = 'rgba(0, 0, 0, 0.7)';
-          label.style.padding = '2px 6px';
-          label.style.borderRadius = '4px';
-          label.style.pointerEvents = 'none';
-          label.style.zIndex = '10000';
-          label.style.display = 'none';
-          document.body.appendChild(label);
-          
-          marker.userData.label = label;
-          markers.push(marker);
-        });
-        return markers;
-      }
-      
-      // Helper: Create polygon corners around an annotation point
-      // Creates a square polygon centered on the annotation direction
-      function createPolygonCornersFromAnnotation(annotation, size = 2.0) {
-        // Get the annotation position on skybox
-        const center = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS);
-        const normal = annotation.direction.clone().normalize();
-        
-        // Create tangent plane coordinate system
-        const tangent1 = new THREE.Vector3();
-        const tangent2 = new THREE.Vector3();
-        
-        // Choose perpendicular vector for tangent1
-        if (Math.abs(normal.x) > 0.9) {
-          tangent1.set(0, 1, 0);
-        } else {
-          tangent1.set(1, 0, 0);
-        }
-        
-        // Create orthogonal tangent vectors
-        tangent1.cross(normal).normalize();
-        tangent2.crossVectors(normal, tangent1).normalize();
-        
-        // Create 4 corners of a square polygon
-        const halfSize = size / 2;
-        const corners = [
-          center.clone().add(tangent1.clone().multiplyScalar(-halfSize))
-                .add(tangent2.clone().multiplyScalar(-halfSize)),
-          center.clone().add(tangent1.clone().multiplyScalar(halfSize))
-                .add(tangent2.clone().multiplyScalar(-halfSize)),
-          center.clone().add(tangent1.clone().multiplyScalar(halfSize))
-                .add(tangent2.clone().multiplyScalar(halfSize)),
-          center.clone().add(tangent1.clone().multiplyScalar(-halfSize))
-                .add(tangent2.clone().multiplyScalar(halfSize))
-        ];
-        
-        // Project corners back onto sphere surface
-        return corners.map(corner => {
-          return corner.normalize().multiplyScalar(SKYBOX_RADIUS);
-        });
-      }
-      
-      // Initialize annotation polygons for all annotations that have polygon data
-      function initializeAnnotationPolygons() {
-        annotations.forEach((annotation, index) => {
-          // Check if annotation has polygon corners defined
-          if (annotation.polygonCorners && annotation.polygonCorners.length > 0) {
-            // Use provided polygon corners
-            const corners = annotation.polygonCorners.map(corner => {
-              if (corner instanceof THREE.Vector3) {
-                // If already a Vector3, normalize and scale to skybox radius
-                return corner.clone().normalize().multiplyScalar(SKYBOX_RADIUS);
-              } else if (Array.isArray(corner) && corner.length === 3) {
-                // If array of coordinates, convert to Vector3
-                return new THREE.Vector3(corner[0], corner[1], corner[2])
-                  .normalize().multiplyScalar(SKYBOX_RADIUS);
+          // Add audio functionality to the button
+          const audioBtn = document.getElementById(audioButtonId);
+          if (audioBtn && 'speechSynthesis' in window) {
+            let isPlaying = false;
+            audioBtn.addEventListener('click', () => {
+              if (isPlaying) {
+                window.speechSynthesis.cancel();
+                audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                isPlaying = false;
+              } else {
+                const textToSpeak = `${annotation.title}. ${annotation.description}`;
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                utterance.onstart = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-mute"></i> Stop';
+                  isPlaying = true;
+                };
+                
+                utterance.onend = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                  isPlaying = false;
+                };
+                
+                utterance.onerror = () => {
+                  audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+                  isPlaying = false;
+                };
+                
+                window.speechSynthesis.speak(utterance);
               }
-              return null;
-            }).filter(corner => corner !== null);
-            
-            if (corners.length >= 3) {
-              const polygonColor = parseInt(annotation.color.replace('#', ''), 16);
-              createAnnotationPolygon(
-                corners,
-                polygonColor,
-                `${annotation.title} Zone`,
-                annotation
-              );
-            }
-          } else if (annotation.createPolygon !== false) {
-            // Auto-generate polygon for annotations (default: enabled for first annotation)
-            // Can be disabled by setting createPolygon: false
-            if (index === 0 || annotation.createPolygon === true) {
-              const polygonSize = annotation.polygonSize || 2.0;
-              const corners = createPolygonCornersFromAnnotation(annotation, polygonSize);
-              const polygonColor = parseInt(annotation.color.replace('#', ''), 16);
-              createAnnotationPolygon(
-                corners,
-                polygonColor,
-                `${annotation.title} Zone`,
-                annotation
-              );
-            }
+            });
+          }
+        }, 10);
+        
+        // Add close function to global scope
+        window.closeDialogBox = () => {
+          // Stop any ongoing speech when closing dialog
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          dialogBox.classList.remove('show');
+          setTimeout(() => {
+            dialogBox.innerHTML = '';
+          }, 300);
+        };
+        
+        // Close on background click
+        dialogBox.addEventListener('click', (e) => {
+          if (e.target === dialogBox) {
+            window.closeDialogBox();
           }
         });
-      }
-      
-      // Initialize Right Goal Post Polygon (Experimental - with specific corners)
-      function initializeRightGoalPostPolygon() {
-        // Goal Post Polygon: 4 Corners (Mouse Target Coordinates)
-        // These are raw world coordinates - convert to direction vectors, then scale to SKYBOX_RADIUS
-        const rawCorners = [
-          new THREE.Vector3(480.32, 400.77, -775.46),
-          new THREE.Vector3(426.38, -6.41, -900.07),
-          new THREE.Vector3(431.15, 14.92, -897.73),
-          new THREE.Vector3(524, -13.42, -846.56),
-        ];
         
-        // Convert raw coordinates to direction vectors, then scale to skybox radius
-        const goalPostCorners = rawCorners.map(corner => {
-          return corner.clone().normalize().multiplyScalar(SKYBOX_RADIUS);
-        });
-        
-        // Find existing Right Goal Post annotation
-        const rightGoalPostAnnotation = annotations.find(ann => ann.title === "The Right Goal Post");
-        if (rightGoalPostAnnotation) {
-          // Store polygon corners in annotation for reference
-          rightGoalPostAnnotation.polygonCorners = goalPostCorners;
-          
-          const polygonColor = parseInt(rightGoalPostAnnotation.color.replace('#', ''), 16);
-          createAnnotationPolygon(
-            goalPostCorners, 
-            polygonColor, 
-            'Right Goal Post Zone',
-            rightGoalPostAnnotation
-          );
-        }
-        
-        // Camera positions for recorded viewpoints
-        const cameraPositions = [
-          new THREE.Vector3(0.42, 0.02, 4.98),
-          new THREE.Vector3(0.97, -0.03, 4.91),
-          new THREE.Vector3(0.97, 0.30, 4.90),
-          new THREE.Vector3(0.42, 0.28, 4.97),
-        ];
-        
-        // Create camera markers
-        cameraMarkers = createCameraMarkers(cameraPositions, 0xff0000);
-        
-        return { markers: cameraMarkers };
-      }
+        // Close on Escape key
+        const escapeHandler = (e) => {
+          if (e.key === 'Escape') {
+            window.closeDialogBox();
+            document.removeEventListener('keydown', escapeHandler);
+          }
+        };
+        document.addEventListener('keydown', escapeHandler);
+      };
       
       const createAnnotationMarkers = () => {
         // Create sprites for each annotation with unique colors
         annotations.forEach((annotation, index) => {
-          // Convert direction vector to position on skybox surface
-          const position = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS);
+          // Place annotation on sphere boundary (skybox surface)
+          const position = annotation.position; // Already projected to SKYBOX_RADIUS
           
           // Create a canvas-based circular sprite with annotation-specific color
           const size = 64;
@@ -541,13 +375,13 @@ function SkyboxScene() {
           const material = new THREE.SpriteMaterial({ 
             map: texture, 
             transparent: true, 
-            depthTest: false,
+            depthTest: true, // Enable depth test for proper rendering
             depthWrite: false,
             alphaTest: 0.1
           });
           const sprite = new THREE.Sprite(material);
           sprite.position.copy(position);
-          sprite.scale.set(2.5, 2.5, 1); // Slightly larger for better visibility
+          sprite.scale.set(3.0, 3.0, 1); // Larger scale for better visibility
           sprite.renderOrder = 999; // Render on top
           sprite.userData = { annotationIndex: index, annotation: annotation };
           scene.add(sprite);
@@ -559,36 +393,51 @@ function SkyboxScene() {
         if (!sprite) return;
         isHovering = hovering;
         if (hovering) {
-          sprite.scale.set(3.5, 3.5, 1); // Slightly larger on hover
+          sprite.scale.set(3.5, 3.5, 1); // Expand on hover
           renderer.domElement.style.cursor = 'pointer';
           hoveredAnnotation = sprite;
           
-          // Show tooltip
-          showTooltip(sprite.userData.annotation.title);
+          const annotation = sprite.userData.annotation;
+          
+          // Show tooltip (follows mouse)
+          showTooltip(annotation.title);
+          
+          // Show location label in annotation overlay (bottom center)
+          const annotationOverlay = document.getElementById('annotationMessage');
+          if (annotationOverlay) {
+            annotationOverlay.textContent = annotation.title;
+            annotationOverlay.classList.add('show');
+          }
         } else {
-          sprite.scale.set(2.5, 2.5, 1); // Match the new base scale
+          sprite.scale.set(2.5, 2.5, 1); // Return to base scale
           renderer.domElement.style.cursor = 'default';
           hoveredAnnotation = null;
           
           // Hide tooltip
           hideTooltip();
+          
+          // Hide location label
+          const annotationOverlay = document.getElementById('annotationMessage');
+          if (annotationOverlay) {
+            annotationOverlay.classList.remove('show');
+          }
         }
       };
       
       const onAnnotationClick = (sprite) => {
-        // Animate camera to annotation instead of showing dialog
-        animateCameraToAnnotation(sprite.userData.annotation);
+        // Show dialog box with annotation details
+        showDialogBox(sprite.userData.annotation);
         
         // Simple click bounce animation
         if (!sprite) return;
-        const originalScale = 2.5; // Match the new base scale
+        const originalScale = 2.5;
         const startTime = Date.now();
         const duration = 500;
         const animateClick = () => {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
           const bounce = Math.sin(progress * Math.PI);
-          const scale = originalScale + bounce * 10;
+          const scale = originalScale + bounce * 0.5;
           sprite.scale.set(scale, scale, 1);
           if (progress < 1) requestAnimationFrame(animateClick);
           else sprite.scale.set(originalScale, originalScale, 1);
@@ -679,73 +528,16 @@ function SkyboxScene() {
           }
         }
         
-        // Check for polygon intersections
-        if (interactivePolygons.length > 0 && !hovering) {
-          const polygonIntersects = raycaster.intersectObjects(interactivePolygons, true);
-          
-          if (polygonIntersects.length > 0) {
-            const intersectedPolygon = polygonIntersects[0].object;
-            const material = intersectedPolygon.material;
-            
-            // Only update if it's a different polygon or not already highlighted
-            if (hoveredAnnotation !== intersectedPolygon || material.opacity !== intersectedPolygon.userData.hoverOpacity) {
-              // Reset previously hovered polygon if different
-              if (hoveredAnnotation && hoveredAnnotation !== intersectedPolygon && 
-                  hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined) {
-                hoveredAnnotation.material.opacity = hoveredAnnotation.userData.defaultOpacity;
-              }
-              
-              // Highlight polygon on hover
-              material.opacity = intersectedPolygon.userData.hoverOpacity;
-              renderer.domElement.style.cursor = 'pointer';
-              
-              // Show tooltip if polygon has annotation data
-              if (intersectedPolygon.userData.annotation) {
-                showTooltip(intersectedPolygon.userData.annotation.title);
-              } else {
-                showTooltip(intersectedPolygon.name);
-              }
-              
-              hoveredAnnotation = intersectedPolygon;
-              hovering = true;
-            }
-          } else {
-            // Only reset polygons if we're not hovering over one (avoid clearing on click)
-            if (!hoveredAnnotation || !(hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined)) {
-              // Reset all polygons to default opacity
-              interactivePolygons.forEach(polygon => {
-                if (polygon.material.opacity !== polygon.userData.defaultOpacity) {
-                  polygon.material.opacity = polygon.userData.defaultOpacity;
-                }
-              });
-            }
-          }
-        }
-        
-        // Reset hover state if nothing is hovered (but preserve polygon state during clicks)
+        // Reset hover state if nothing is hovered
         if (!hovering && hoveredAnnotation) {
-          // Check if it's a polygon - only reset if mouse truly moved away
-          if (hoveredAnnotation.material && hoveredAnnotation.userData.defaultOpacity !== undefined) {
-            // It's a polygon - check if we're still intersecting
-            const polygonIntersects = raycaster.intersectObjects([hoveredAnnotation], true);
-            if (polygonIntersects.length === 0) {
-              // Only reset if we're not intersecting anymore
-              hoveredAnnotation.material.opacity = hoveredAnnotation.userData.defaultOpacity;
-              renderer.domElement.style.cursor = 'default';
-              hideTooltip();
-              hoveredAnnotation = null;
-            }
-          } else if (hoveredAnnotation.scale) {
             // It's a sprite annotation
             onAnnotationHover(hoveredAnnotation, false);
             renderer.domElement.style.cursor = 'default';
             hideTooltip();
             hoveredAnnotation = null;
-          }
         }
         
-        // Calculate target coordinates using raycasting against actual skybox mesh
-        // This ensures accurate positioning based on camera's viewing direction
+        // Calculate target coordinates using raycasting against skybox mesh
         try {
           if (skyboxMesh) {
             // Raycast against the actual skybox mesh
@@ -770,180 +562,29 @@ function SkyboxScene() {
       };
       
       const onMouseClick = (event) => {
-        if (hoveredAnnotation) {
-          // Check if it's a polygon with annotation data
-          if (hoveredAnnotation.userData && hoveredAnnotation.userData.annotation) {
-            // Keep polygon highlighted during animation
-            const polygon = hoveredAnnotation;
-            // Animate camera to annotation
-            animateCameraToAnnotation(hoveredAnnotation.userData.annotation);
-            // Ensure polygon stays highlighted (mouse might have moved slightly during click)
-            if (polygon.material && polygon.userData.hoverOpacity !== undefined) {
-              polygon.material.opacity = polygon.userData.hoverOpacity;
-            }
-          } else if (hoveredAnnotation.scale) {
+        if (hoveredAnnotation && hoveredAnnotation.scale) {
             // It's a sprite annotation
             if (isHovering) onAnnotationClick(hoveredAnnotation);
           }
-        }
       };
-      
-      // Smooth camera animation function
-      const animateCameraToAnnotation = (annotation, duration = 1500) => {
-        const startPosition = camera.position.clone();
-        const startTarget = controls.target.clone();
-        const startFOV = camera.fov;
-        
-        const endPosition = annotation.cameraPosition;
-        const endTarget = annotation.cameraTarget;
-        const endFOV = annotation.fov;
-        
-        const startTime = Date.now();
-        
-        function animate() {
-          const elapsed = Date.now() - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          
-          // Easing function (ease-in-out)
-          const eased = progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-          
-          // Interpolate camera position
-          camera.position.lerpVectors(startPosition, endPosition, eased);
-          
-          // Interpolate camera target
-          controls.target.lerpVectors(startTarget, endTarget, eased);
-          
-          // Interpolate FOV
-          camera.fov = startFOV + (endFOV - startFOV) * eased;
-          camera.updateProjectionMatrix();
-          
-          controls.update();
-          
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
-            showAnnotationDetails(annotation);
-          }
-        }
-        
-        animate();
-      };
-      
-      // Show annotation details with return button
-      const showAnnotationDetails = (annotation) => {
-        // Remove existing detail panel
-        const existingPanel = document.getElementById('annotationDetailPanel');
-        if (existingPanel) {
-          existingPanel.remove();
-        }
-        
-        // Create detail panel
-        const panel = document.createElement('div');
-        panel.id = 'annotationDetailPanel';
-        panel.innerHTML = `
-          <div class="annotation-detail-content">
-            <h2 style="color: ${annotation.color};">${annotation.title}</h2>
-            <p>${annotation.description}</p>
-            <div style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 8px;">
-              ${annotation.originalPosition ? `
-                <strong>Original Position:</strong><br>
-                X: ${annotation.originalPosition.x.toFixed(2)}<br>
-                Y: ${annotation.originalPosition.y.toFixed(2)}<br>
-                Z: ${annotation.originalPosition.z.toFixed(2)}<br>
-              ` : ''}
-              <strong>Direction Vector:</strong><br>
-              X: ${annotation.direction.x.toFixed(3)}<br>
-              Y: ${annotation.direction.y.toFixed(3)}<br>
-              Z: ${annotation.direction.z.toFixed(3)}<br>
-              <strong>Position (on skybox):</strong><br>
-              X: ${(annotation.direction.x * SKYBOX_RADIUS).toFixed(2)}<br>
-              Y: ${(annotation.direction.y * SKYBOX_RADIUS).toFixed(2)}<br>
-              Z: ${(annotation.direction.z * SKYBOX_RADIUS).toFixed(2)}
-            </div>
-            <button class="return-btn" onclick="returnToOverview()">🔙 Return to Overview</button>
-          </div>
-        `;
-        document.body.appendChild(panel);
-        
-        // Show with animation
-        setTimeout(() => panel.classList.add('show'), 10);
-        
-        // Add return to overview function to global scope
-        window.returnToOverview = () => {
-          // Animate back to original position
-          const startPosition = camera.position.clone();
-          const startTarget = controls.target.clone();
-          const startFOV = camera.fov;
-          
-          const endPosition = new THREE.Vector3(0, 0, 5); // Original camera position
-          const endTarget = new THREE.Vector3(0, 0, 0); // Original target
-          const endFOV = 75; // Original FOV
-          
-          const startTime = Date.now();
-          const duration = 1500;
-          
-          function animateReturn() {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function (ease-in-out)
-            const eased = progress < 0.5
-              ? 2 * progress * progress
-              : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-            
-            // Interpolate camera position
-            camera.position.lerpVectors(startPosition, endPosition, eased);
-            
-            // Interpolate camera target
-            controls.target.lerpVectors(startTarget, endTarget, eased);
-            
-            // Interpolate FOV
-            camera.fov = startFOV + (endFOV - startFOV) * eased;
-            camera.updateProjectionMatrix();
-            
-            controls.update();
-            
-            if (progress < 1) {
-              requestAnimationFrame(animateReturn);
-            } else {
-              // Remove detail panel
-              const panel = document.getElementById('annotationDetailPanel');
-              if (panel) {
-                panel.remove();
-              }
-            }
-          }
-          
-          animateReturn();
-        };
-      };
-      
       
       // Initialize raycaster, mouse, and create markers
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
       createAnnotationMarkers();
       
-      // Initialize annotation polygons (including auto-generated ones)
-      initializeAnnotationPolygons();
-      
-      // Initialize Right Goal Post Polygon (with specific corners from mouse targets)
-      initializeRightGoalPostPolygon();
-      
       renderer.domElement.addEventListener('mousemove', onMouseMove);
       renderer.domElement.addEventListener('click', onMouseClick);
   
       // Skybox transition function
       const transitionToSkybox = (skyboxIndex) => {
-        if (isTransitioning || skyboxIndex === currentSkybox) return;
-        
+        // Allow transition even if already transitioning (force transition)
         console.log(`Transitioning to skybox ${skyboxIndex}: ${skyboxConfigs[skyboxIndex].name}`);
         setIsTransitioning(true);
+        setCurrentSkybox(skyboxIndex); // Update state to match the transition
         const newConfig = skyboxConfigs[skyboxIndex];
         
-        // Create fade effect with improved timing
+        // Create fade effect
         const fadeOut = () => {
           const fadeMaterial = new THREE.MeshBasicMaterial({
             color: 0x000000,
@@ -960,7 +601,7 @@ function SkyboxScene() {
               if (fadeMaterial.opacity >= 1) {
                 clearInterval(fadeInterval);
                 
-                // Load new skybox with error handling
+                // Load new skybox
                 try {
                   loadSkybox(
                     newConfig,
@@ -993,8 +634,7 @@ function SkyboxScene() {
                           
                           const newMaterial = new THREE.ShaderMaterial({
                             uniforms: {
-                              tCube: { value: newTexture },
-                              cameraPosition: { value: camera.position }
+                              tCube: { value: newTexture }
                             },
                             vertexShader: vertexShader,
                             fragmentShader: fragmentShader,
@@ -1051,10 +691,7 @@ function SkyboxScene() {
         animationId = requestAnimationFrame(animate);
         controls.update();
         
-        // Update shader material camera position uniform for proper cube texture sampling
-        if (skyboxMaterial && skyboxMaterial.uniforms && skyboxMaterial.uniforms.cameraPosition) {
-          skyboxMaterial.uniforms.cameraPosition.value.copy(camera.position);
-        }
+        // cameraPosition is automatically provided by Three.js, no need to update manually
         
         // Make annotations always face camera (billboard behavior)
         annotationSprites.forEach(sprite => {
@@ -1067,58 +704,7 @@ function SkyboxScene() {
           hoveredAnnotation.scale.set(scale, scale, 1);
         }
         
-        // Update camera marker label positions
-        cameraMarkers.forEach(marker => {
-          if (marker && marker.userData && marker.userData.label) {
-            const vector = marker.position.clone().project(camera);
-            // Check if marker is in front of camera
-            if (vector.z < 1) {
-              const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-              const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
-              marker.userData.label.style.left = `${x}px`;
-              marker.userData.label.style.top = `${y}px`;
-              marker.userData.label.style.display = 'block';
-            } else {
-              marker.userData.label.style.display = 'none';
-            }
-          }
-        });
-        
-        // Update coordinate displays
-        try {
-          // Update camera coordinates
-          const cameraX = document.getElementById('camera-x');
-          const cameraY = document.getElementById('camera-y');
-          const cameraZ = document.getElementById('camera-z');
-          
-          if (cameraX && cameraY && cameraZ && camera) {
-            const x = camera.position.x.toFixed(2);
-            const y = camera.position.y.toFixed(2);
-            const z = camera.position.z.toFixed(2);
-            
-            cameraX.textContent = `(${x})`;
-            cameraY.textContent = `(${y})`;
-            cameraZ.textContent = `(${z})`;
-          }
-          
-          // Update target coordinates (will be updated by mouse move)
-          const targetX = document.getElementById('target-x');
-          const targetY = document.getElementById('target-y');
-          const targetZ = document.getElementById('target-z');
-          
-          if (targetX && targetY && targetZ && window.lastTargetPosition) {
-            const x = window.lastTargetPosition.x.toFixed(2);
-            const y = window.lastTargetPosition.y.toFixed(2);
-            const z = window.lastTargetPosition.z.toFixed(2);
-            
-            targetX.textContent = `(${x})`;
-            targetY.textContent = `(${y})`;
-            targetZ.textContent = `(${z})`;
-          }
-          
-        } catch (error) {
-          console.warn('Coordinate display update error:', error);
-        }
+        // Coordinate displays removed
         
         renderer.render(scene, camera);
       };
@@ -1161,33 +747,14 @@ function SkyboxScene() {
           if (currentTexture) {
             currentTexture.dispose();
           }
+          if (skyboxMesh) {
+            skyboxMesh.material.dispose();
+            skyboxMesh.geometry.dispose();
+          }
           annotationSprites.forEach(sprite => {
             if (sprite && sprite.material) {
               sprite.material.map?.dispose();
               sprite.material.dispose();
-            }
-          });
-          
-          // Dispose of interactive polygons
-          interactivePolygons.forEach(polygon => {
-            if (polygon && polygon.geometry) {
-              polygon.geometry.dispose();
-            }
-            if (polygon && polygon.material) {
-              polygon.material.dispose();
-            }
-          });
-          
-          // Dispose of camera markers and their labels
-          cameraMarkers.forEach(marker => {
-            if (marker && marker.geometry) {
-              marker.geometry.dispose();
-            }
-            if (marker && marker.material) {
-              marker.material.dispose();
-            }
-            if (marker && marker.userData && marker.userData.label) {
-              marker.userData.label.remove();
             }
           });
           
@@ -1211,19 +778,137 @@ function SkyboxScene() {
   function App() {
     const [currentSkybox, setCurrentSkybox] = React.useState(0);
     const [isTransitioning, setIsTransitioning] = React.useState(false);
+    const [isSpeaking, setIsSpeaking] = React.useState(false);
+    const [speechSynthesis, setSpeechSynthesis] = React.useState(null);
+    
+    // Initialize text-to-speech
+    React.useEffect(() => {
+      if ('speechSynthesis' in window) {
+        const synth = window.speechSynthesis;
+        setSpeechSynthesis(synth);
+        
+        // Ensure voices are loaded (some browsers need this)
+        const loadVoices = () => {
+          const voices = synth.getVoices();
+          if (voices.length > 0) {
+            console.log('Voices loaded:', voices.length);
+          }
+        };
+        
+        // Load voices immediately if available
+        loadVoices();
+        
+        // Some browsers load voices asynchronously
+        synth.onvoiceschanged = loadVoices;
+      } else {
+        console.warn('Text-to-speech not supported in this browser');
+      }
+    }, []);
+    
+    // Get female voice
+    const getFemaleVoice = () => {
+      if (!speechSynthesis) return null;
+      
+      const voices = speechSynthesis.getVoices();
+      
+      if (voices.length === 0) {
+        console.warn('No voices available yet');
+        return null;
+      }
+      
+      // Try to find a female voice (common patterns: female, woman, or specific names)
+      const femaleVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('female') ||
+        voice.name.toLowerCase().includes('woman') ||
+        voice.name.toLowerCase().includes('zira') || // Windows female voice
+        voice.name.toLowerCase().includes('samantha') || // macOS female voice
+        voice.name.toLowerCase().includes('karen') || // macOS female voice
+        voice.name.toLowerCase().includes('victoria') || // macOS female voice
+        voice.name.toLowerCase().includes('susan') || // macOS female voice
+        (voice.name.toLowerCase().includes('google') && voice.name.toLowerCase().includes('female')) ||
+        (voice.name.toLowerCase().includes('microsoft') && voice.name.toLowerCase().includes('female'))
+      );
+      
+      // If no specific female voice found, try to find any non-male voice
+      if (!femaleVoice) {
+        const nonMaleVoice = voices.find(voice => 
+          !voice.name.toLowerCase().includes('male') &&
+          !voice.name.toLowerCase().includes('man') &&
+          !voice.name.toLowerCase().includes('david') &&
+          !voice.name.toLowerCase().includes('mark') &&
+          !voice.name.toLowerCase().includes('alex')
+        );
+        return nonMaleVoice || voices[0]; // Fallback to first available voice
+      }
+      
+      return femaleVoice;
+    };
+    
+    // Text-to-speech function with female voice
+    const speakText = (text, onEnd) => {
+      if (!speechSynthesis) {
+        console.warn('Speech synthesis not available');
+        return;
+      }
+      
+      // Stop any current speech
+      speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9; // Slightly slower for clarity
+      utterance.pitch = 1.1; // Slightly higher pitch for female voice
+      utterance.volume = 1.0; // Full volume
+      
+      // Set female voice
+      const femaleVoice = getFemaleVoice();
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+      };
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        if (onEnd) onEnd();
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setIsSpeaking(false);
+      };
+      
+      speechSynthesis.speak(utterance);
+    };
+    
+    // Scene-specific scripts
+    const sceneScripts = {
+      "Thousand Hills in Truman": "Just a short drive west of Kirksville lies the stunning Thousand Hills State Park, a true natural treasure spanning over 3,000 acres with the centerpiece Forest Lake. Created in the early 1950s to supply water for the city, Forest Lake is surrounded by lush woods, savanna landscapes, and a network of hiking and mountain biking trails perfect for outdoor enthusiasts of all levels. The park offers a rich variety of recreational activities including fishing, boating, camping, and wildlife watching, making it a favorite escape for nature lovers and families alike.",
+      "The Quad": "Welcome to Truman State University's iconic Quad, the vibrant heart of campus life. Once a shimmering lake, this space was transformed in 1924 after a fire at Baldwin Hall drained the water and filled the area with rubble, creating the peaceful grassy oasis you see today. Students flock here in sunny weather to play frisbee, take relaxing hammock naps, and enjoy spontaneous events ranging from barbecues and student radio promotions to lively snowball fights during Missouri winters. The Quad is more than just a green space—it's a communal hub where friendships form, creativity flourishes, and campus spirit thrives amidst the historic buildings that surround it."
+    };
+    
+    // Toggle speech for current scene
+    const toggleSceneSpeech = () => {
+      if (isSpeaking) {
+        speechSynthesis.cancel();
+        setIsSpeaking(false);
+      } else {
+        const sceneName = skyboxConfigs[currentSkybox]?.name || 'Current scene';
+        const script = sceneScripts[sceneName] || `Welcome to ${sceneName}.`;
+        speakText(script);
+      }
+    };
     
     // Skybox configurations
     const skyboxConfigs = [
-      { name: "Truman Campus" },
-      { name: "Football Field" }
+      { name: "Thousand Hills in Truman" },
+      { name: "The Quad" }
     ];
     
     const handlePreviousSkybox = () => {
       console.log('Previous button clicked!', { isTransitioning, currentSkybox });
-      if (isTransitioning) {
-        console.log('Transition in progress, ignoring click');
-        return;
-      }
+      // Allow transition even if one is in progress (force transition)
       const prevIndex = currentSkybox > 0 ? currentSkybox - 1 : skyboxConfigs.length - 1;
       console.log(`Previous button clicked: ${currentSkybox} -> ${prevIndex}`);
       
@@ -1242,10 +927,7 @@ function SkyboxScene() {
     
     const handleNextSkybox = () => {
       console.log('Next button clicked!', { isTransitioning, currentSkybox });
-      if (isTransitioning) {
-        console.log('Transition in progress, ignoring click');
-        return;
-      }
+      // Allow transition even if one is in progress (force transition)
       const nextIndex = currentSkybox < skyboxConfigs.length - 1 ? currentSkybox + 1 : 0;
       console.log(`Next button clicked: ${currentSkybox} -> ${nextIndex}`);
       
@@ -1264,23 +946,65 @@ function SkyboxScene() {
     
     return (
       <div className="relative h-full w-full overflow-hidden">
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Truman Virtual Tour</h1>
-        </div>
         <SkyboxScene />
         
-        {/* Back Button */}
+        {/* Top Left - Controls Menu */}
         <div className="absolute top-4 left-4 z-20">
+          <div className="bg-purple-400 bg-opacity-80 backdrop-blur-sm rounded-lg p-3 flex items-center space-x-3 shadow-lg">
+            {/* Search */}
+            <button className="text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50">
+              <i className="fas fa-search text-lg"></i>
+            </button>
+            {/* Audio - Text to Speech */}
+            <button 
+              onClick={toggleSceneSpeech}
+              className={`text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50 ${isSpeaking ? 'bg-purple-500 bg-opacity-50' : ''}`}
+              title={isSpeaking ? 'Stop audio' : 'Play scene description'}
+            >
+              <i className={`fas ${isSpeaking ? 'fa-volume-mute' : 'fa-volume-up'} text-lg`}></i>
+            </button>
+            {/* Subtitles */}
+            <button className="text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50">
+              <i className="fas fa-closed-captioning text-lg"></i>
+            </button>
+            {/* More (Three Dots) */}
+            <button className="text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50">
+              <i className="fas fa-ellipsis-v text-lg"></i>
+            </button>
+          </div>
+        </div>
+        
+        {/* Top Right - Action Buttons */}
+        <div className="absolute top-4 right-4 z-20 flex items-center space-x-3">
           <button 
-            onClick={() => window.location.href = 'welcome.html'}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            onClick={() => window.open('https://www.truman.edu/admission-cost/landing-pages/apply-source-mogo/', '_blank')}
+            className="bg-white hover:bg-gray-100 text-purple-600 font-semibold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            <i className="fas fa-arrow-left mr-2"></i>
-            Back to Welcome
+            Learn More
+          </button>
+          <button 
+            onClick={() => window.open('https://www.truman.edu/admission-cost/landing-pages/apply-source-mogo/', '_blank')}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Apply Now
           </button>
         </div>
         
-        {/* Skybox Navigation Controls - Media Player Style */}
+        {/* Bottom Left - Scene Label and Logo */}
+        <div className="absolute bottom-4 left-4 z-20">
+          {/* Scene Label - Outside logo box */}
+          <p className="text-white text-xl font-bold mb-3 text-left opacity-95 drop-shadow-lg" style={{fontFamily: "'Playfair Display', 'Georgia', serif", letterSpacing: '0.5px'}}>
+            {skyboxConfigs[currentSkybox]?.name}
+          </p>
+          {/* Logo Box */}
+          <div className="bg-black bg-opacity-40 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-white border-opacity-20">
+            <div className="flex justify-center">
+              <img src="/public/logo/logo.svg" alt="Truman State University" className="h-10 w-auto opacity-95" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Bottom Center - Skybox Navigation Controls */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
           <div className="bg-black bg-opacity-70 rounded-lg p-4 flex items-center space-x-4">
             {/* Previous Button */}
@@ -1290,16 +1014,13 @@ function SkyboxScene() {
                 console.log('Previous button onClick triggered');
                 handlePreviousSkybox();
               }}
-              disabled={isTransitioning}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg"
-              style={{ cursor: isTransitioning ? 'not-allowed' : 'pointer' }}
+              className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-lg cursor-pointer"
             >
               <i className="fas fa-step-backward text-lg"></i>
             </button>
             
             {/* Current Skybox Info */}
             <div className="text-white text-center min-w-[120px]">
-              <p className="text-sm font-semibold">{skyboxConfigs[currentSkybox]?.name}</p>
               <p className="text-xs text-gray-300">
                 {currentSkybox + 1} of {skyboxConfigs.length}
               </p>
@@ -1312,72 +1033,16 @@ function SkyboxScene() {
                 console.log('Next button onClick triggered');
                 handleNextSkybox();
               }}
-              disabled={isTransitioning}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg"
-              style={{ cursor: isTransitioning ? 'not-allowed' : 'pointer' }}
+              className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white p-3 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-lg cursor-pointer"
             >
               <i className="fas fa-step-forward text-lg"></i>
             </button>
           </div>
         </div>
         
-        {/* Navigation Instructions */}
-        <div className="absolute bottom-20 left-4 bg-purple-800 bg-opacity-80 p-4 rounded-lg text-white">
-          <p className="text-sm font-semibold">🖱️ Mouse Controls:</p>
-          <p className="text-xs mt-1">• Click & drag to look around</p>
-          <p className="text-xs">• Scroll to zoom in/out</p>
-          <p className="text-xs">• Right-click & drag to pan</p>
-        </div>
+        {/* Camera, Mouse Target, and Crosshair Indicators - Removed */}
         
-        {/* Truman Branding */}
-        <div className="absolute top-4 right-4 z-20">
-          <div className="bg-white bg-opacity-90 p-3 rounded-lg shadow-lg">
-            <img src="/public/logo/logo.svg" alt="Truman State University" className="h-8 w-auto" />
-          </div>
-        </div>
-        
-        {/* Camera Position Indicator */}
-        <div className="absolute bottom-4 right-4 z-50" style={{zIndex: 9999}}>
-          <div className="bg-black bg-opacity-90 p-3 rounded-lg shadow-lg text-white font-mono text-sm border border-gray-600 mb-2">
-            <div className="text-xs text-gray-300 mb-1">Camera Position</div>
-            <div id="camera-coordinate-display" className="space-y-1">
-              <div>X: <span id="camera-x" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
-              <div>Y: <span id="camera-y" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
-              <div>Z: <span id="camera-z" style={{color: '#10b981', fontWeight: 'bold'}}>(0.00)</span></div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Mouse Target Indicator */}
-        <div className="absolute bottom-32 right-4 z-50" style={{zIndex: 9999}}>
-          <div className="bg-black bg-opacity-90 p-3 rounded-lg shadow-lg text-white font-mono text-sm border border-gray-600">
-            <div className="text-xs text-gray-300 mb-1">Mouse Target</div>
-            <div id="target-coordinate-display" className="space-y-1">
-              <div>X: <span id="target-x" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
-              <div>Y: <span id="target-y" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
-              <div>Z: <span id="target-z" style={{color: '#f59e0b', fontWeight: 'bold'}}>(0.00)</span></div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Crosshair Indicator */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none" style={{zIndex: 9999}}>
-          <div className="w-6 h-6 border-2 border-white border-opacity-60 rounded-full">
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-1 h-1 bg-white rounded-full opacity-80"></div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Loading Indicator */}
-        {isTransitioning && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div className="bg-white bg-opacity-90 p-6 rounded-lg text-center">
-              <div className="pixelated-rotate mb-4"></div>
-              <p className="text-purple-600 font-semibold">Loading Skybox...</p>
-            </div>
-          </div>
-        )}
+        {/* Loading Indicator - Removed to prevent blocking interactions */}
       </div>
     );
   }

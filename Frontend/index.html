@@ -21,6 +21,11 @@
 
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Google Fonts - Playfair Display for stylish scene labels -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="/style.css">
@@ -68,15 +73,7 @@
   <!-- Add before closing </body> tag -->
 <div class="loading" id="loading">Loading 3D Environment...</div>
 
-<div class="instructions">
-    <h3>🎯 Find the Annotation</h3>
-    <p><strong>Look around:</strong> Drag to rotate view</p>
-    <p><strong>Hover:</strong> White dot will expand</p>
-    <p><strong>Click:</strong> Reveal the message!</p>
-</div>
-
-<div class="annotation-overlay" id="annotationMessage">
-    You found me! 🎉
-</div>
+<!-- Dialog Box for Annotations -->
+<div id="dialogBox"></div>
 </body>
 </html> 

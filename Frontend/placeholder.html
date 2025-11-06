@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truman Virtual Tour - Loading</title>
+    <link rel="icon" href="data:,">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .enter-button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .enter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .enter-button:active {
+            transform: translateY(0);
+        }
+
+        .enter-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading animation */
+        .loading-dots {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Truman Virtual Tour</h1>
+        <p>Your immersive campus experience is ready</p>
+        <button class="enter-button" onclick="enterSkybox()">
+            Enter Skybox Environment
+        </button>
+        <div id="loading-message" style="display: none; margin-top: 1rem;">
+            <p>Initializing 3D environment<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+        </div>
+    </div>
+
+    <script>
+        function enterSkybox() {
+            // Show loading message
+            document.getElementById('loading-message').style.display = 'block';
+            
+            // Disable button
+            const button = document.querySelector('.enter-button');
+            button.disabled = true;
+            button.style.opacity = '0.6';
+            button.style.cursor = 'not-allowed';
+            
+            // Smooth transition to tour
+            setTimeout(() => {
+                window.location.href = '/tour';
+            }, 800);
+        }
+
+        // Optional: Add keyboard shortcut (Enter key)
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                enterSkybox();
+            }
+        });
+    </script>
+</body>
+</html>
+
