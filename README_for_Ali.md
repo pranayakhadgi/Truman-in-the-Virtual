@@ -1,8 +1,9 @@
 # 🎯 Truman Virtual Tour: Welcome Page Data Collection System
 
 **Project Update:** Phase 2 - Interactive Welcome Flow  
-**Developer:** Pranaya Khadgi Shahi  
-**Collaborator:** Ali Musterih Addikebir  
+**Developer1:** Pranaya Khadgi Shahi  
+**Developer2:** Ali Musterih Addikebir
+**BusinessMan:** Mayowa Esan
 **Date:** November 2025
 
 ---
