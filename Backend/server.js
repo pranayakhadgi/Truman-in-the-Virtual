@@ -55,16 +55,29 @@ app.use(mongoSanitize());
 
 // API Routes (must come before static files)
 app.get('/api/health', async (req, res) => {
-  const mongoose = require('mongoose');
-  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
-  
-  res.json({ 
-    status: 'OK', 
-    message: 'Truman Virtual Tour Backend is running',
-    database: dbStatus,
-    timestamp: new Date().toISOString(),
-    version: '1.1.0'
-  });
+  try {
+    const mongoose = require('mongoose');
+    const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+    
+    res.json({ 
+      status: 'OK', 
+      message: 'Truman Virtual Tour Backend is running',
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+      version: '1.1.0',
+      environment: process.env.VERCEL ? 'Vercel' : 'Local'
+    });
+  } catch (error) {
+    res.json({ 
+      status: 'OK', 
+      message: 'Truman Virtual Tour Backend is running',
+      database: 'Unknown',
+      timestamp: new Date().toISOString(),
+      version: '1.1.0',
+      environment: process.env.VERCEL ? 'Vercel' : 'Local',
+      warning: 'Database status unavailable'
+    });
+  }
 });
 
 // Session routes
@@ -104,63 +117,158 @@ app.get('/api/analytics', async (req, res) => {
 
 // Frontend route handlers (must come BEFORE static files to take precedence)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/welcome.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/welcome.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving welcome.html:', err);
+        res.status(500).send('Error loading welcome page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in / route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/tour', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/index.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/index.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Error loading tour page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in /tour route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/welcome-flow', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/welcome-flow.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/welcome-flow.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving welcome-flow.html:', err);
+        res.status(500).send('Error loading welcome flow page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in /welcome-flow route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/transition', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/transition.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/transition.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving transition.html:', err);
+        res.status(500).send('Error loading transition page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in /transition route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 // Placeholder route (interim page between welcome and skybox)
 app.get('/placeholder', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/placeholder.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/placeholder.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving placeholder.html:', err);
+        res.status(500).send('Error loading placeholder page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in /placeholder route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 // Queries route (question flow with questionTree integration)
 app.get('/queries', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend/queries.html'));
+  try {
+    const filePath = path.join(__dirname, '../Frontend/queries.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving queries.html:', err);
+        res.status(500).send('Error loading queries page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in /queries route:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 // Handle favicon requests (prevent 404 errors)
 app.get('/favicon.ico', (req, res) => {
-  const faviconPath = path.join(__dirname, '../Frontend/favicon.ico');
-  res.sendFile(faviconPath, (err) => {
-    if (err) {
-      // If favicon doesn't exist, return 204 No Content instead of 404
-      res.status(204).end();
-    }
-  });
+  try {
+    const faviconPath = path.join(__dirname, '../Frontend/favicon.ico');
+    res.sendFile(faviconPath, (err) => {
+      if (err) {
+        // If favicon doesn't exist, return 204 No Content instead of 404
+        res.status(204).end();
+      }
+    });
+  } catch (error) {
+    // Return 204 if there's any error
+    res.status(204).end();
+  }
 });
 
 // Static files (must come AFTER route handlers to avoid serving index.html for /)
 app.use(express.static(path.join(__dirname, '../Frontend')));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
+  
+  // Don't expose stack traces in production
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Handle specific error types
+  if (err.message && err.message.includes('MONGODB_URI')) {
+    return res.status(503).json({ 
+      error: 'Database service unavailable',
+      message: 'Database connection is not configured. Please contact the administrator.'
+    });
+  }
+  
   res.status(err.status || 500).json({ 
     error: err.message || 'Something went wrong!',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(isDevelopment && { stack: err.stack })
   });
 });
 
 // 404 handler - serve welcome page for non-API routes
 app.use((req, res) => {
-  // If it's an API route, return JSON error
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'Route not found' });
+  try {
+    // If it's an API route, return JSON error
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'Route not found' });
+    }
+    // For frontend routes, serve welcome page (SPA fallback)
+    const filePath = path.join(__dirname, '../Frontend/welcome.html');
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving welcome.html in 404 handler:', err);
+        res.status(500).send('Error loading page');
+      }
+    });
+  } catch (error) {
+    console.error('Error in 404 handler:', error);
+    res.status(500).send('Server error');
   }
-  // For frontend routes, serve welcome page (SPA fallback)
-  res.sendFile(path.join(__dirname, '../Frontend/welcome.html'));
 });
 
 // Initialize server
