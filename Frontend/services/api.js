@@ -49,10 +49,17 @@ class APIService {
       return await response.json();
     } catch (error) {
       // Handle CORS and network errors
-      if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+      if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.name === 'TypeError') {
         console.error('API Error - CORS or Network Issue:', error);
-        console.error('   Make sure backend is running on:', API_BASE_URL);
-        throw new Error('Cannot connect to server. Please ensure the backend is running.');
+        console.error('   API Base URL:', API_BASE_URL);
+        console.error('   Current hostname:', window.location.hostname);
+        console.error('   Current origin:', window.location.origin);
+        
+        // Provide helpful error message
+        const errorMsg = window.location.hostname === 'localhost' 
+          ? 'Cannot connect to backend server. Make sure the backend is running on http://localhost:3000'
+          : 'Cannot connect to server. Please check your network connection or try again later.';
+        throw new Error(errorMsg);
       }
       console.error('API Error - createSession:', error);
       throw error;
