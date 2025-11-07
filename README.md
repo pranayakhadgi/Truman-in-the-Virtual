@@ -29,12 +29,18 @@ The Truman Virtual Tour addresses the challenge of providing accessible, engagin
 ## Screenshots
 
 ### Welcome Page
+<img width="1396" height="785" alt="Screen Shot 2025-11-06 at 12 17 46 PM" src="https://github.com/user-attachments/assets/093f5a28-2c47-4126-8b4c-f8436e642401" />
+
 *Interactive welcome page with campus slideshow and tour initiation*
 
 ### Skybox Environment - The Quad
-*Immersive 3D environment showing Truman's iconic Quad with interactive annotations*
+<img width="1399" height="784" alt="Screen Shot 2025-11-06 at 8 36 07 PM" src="https://github.com/user-attachments/assets/1df4ac45-6bc2-48da-aeb7-916fa087db76" />
+
+*Immersive 3D environment showing Truman's iconic Quad with AI autoamted voice tour*
 
 ### Application Redirect
+<img width="1395" height="785" alt="Screen Shot 2025-11-06 at 12 18 27 PM" src="https://github.com/user-attachments/assets/f6a1a94f-0ba8-4dae-867d-4ba2becc718a" />
+
 *Seamless redirect to Truman's online application portal*
 
 ## Quick Start
