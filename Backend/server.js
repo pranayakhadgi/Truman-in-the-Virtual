@@ -5,14 +5,38 @@ const helmet = require('helmet');
 const path = require('path');
 const mongoSanitize = require('express-mongo-sanitize');
 
-// Load .env file from Backend directory
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Load .env file from Backend directory (silently fail if not found)
+try {
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
+} catch (error) {
+  console.warn('Could not load .env file:', error.message);
+}
 
-// Database connection
-const { connectDB } = require('./config/database');
+// Database connection (lazy load - only when needed)
+let connectDB;
+try {
+  const dbModule = require('./config/database');
+  connectDB = dbModule.connectDB;
+} catch (error) {
+  console.error('Failed to load database module:', error);
+  connectDB = async () => {
+    throw new Error('Database module not available');
+  };
+}
 
-// Routes
-const sessionRoutes = require('./routes/sessionRoutes');
+// Routes (load with error handling)
+let sessionRoutes;
+try {
+  sessionRoutes = require('./routes/sessionRoutes');
+} catch (error) {
+  console.error('Failed to load session routes:', error);
+  // Create a minimal router as fallback
+  const expressRouter = require('express');
+  sessionRoutes = expressRouter.Router();
+  sessionRoutes.all('*', (req, res) => {
+    res.status(503).json({ error: 'Session routes not available' });
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -208,20 +232,11 @@ app.get('/queries', (req, res) => {
   }
 });
 
-// Handle favicon requests (prevent 404 errors)
+// Handle favicon requests (prevent 404/500 errors)
 app.get('/favicon.ico', (req, res) => {
-  try {
-    const faviconPath = path.join(__dirname, '../Frontend/favicon.ico');
-    res.sendFile(faviconPath, (err) => {
-      if (err) {
-        // If favicon doesn't exist, return 204 No Content instead of 404
-        res.status(204).end();
-      }
-    });
-  } catch (error) {
-    // Return 204 if there's any error
-    res.status(204).end();
-  }
+  // Simply return 204 No Content - browsers will handle it gracefully
+  // This prevents any file system errors in serverless environments
+  res.status(204).end();
 });
 
 // Static files (must come AFTER route handlers to avoid serving index.html for /)
