@@ -131,7 +131,13 @@ app.get('/queries', (req, res) => {
 
 // Handle favicon requests (prevent 404 errors)
 app.get('/favicon.ico', (req, res) => {
-  res.status(204).end(); // No Content
+  const faviconPath = path.join(__dirname, '../Frontend/favicon.ico');
+  res.sendFile(faviconPath, (err) => {
+    if (err) {
+      // If favicon doesn't exist, return 204 No Content instead of 404
+      res.status(204).end();
+    }
+  });
 });
 
 // Static files (must come AFTER route handlers to avoid serving index.html for /)
@@ -147,9 +153,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler - serve welcome page for non-API routes
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  // If it's an API route, return JSON error
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Route not found' });
+  }
+  // For frontend routes, serve welcome page (SPA fallback)
+  res.sendFile(path.join(__dirname, '../Frontend/welcome.html'));
 });
 
 // Initialize server
@@ -192,7 +203,10 @@ const startServer = async () => {
   }
 };
 
-// Start the server
-startServer();
+// Only start server if not in Vercel serverless environment
+// Vercel will handle the serverless function invocation
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  startServer();
+}
 
 module.exports = app;

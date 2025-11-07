@@ -10,8 +10,10 @@ const locationMappings = {
   0: { // Thousand Hills in Truman
     name: "Thousand Hills State Park",
     address: "Thousand Hills State Park, Kirksville, MO 63501, USA",
-    lat: 40.34508954846465,  // Exact coordinates for Thousand Hills State Park
-    lng: -92.57451304955303
+    lat: 40.19231378040324,  // Exact coordinates for Thousand Hills State Park
+    lng: -92.64884155007502
+
+    //40.34508954846465, -92.57451304955303 40.19231378040324, -92.64884155007502
   },
   1: { // The Quad
     name: "Truman State University Quad",
