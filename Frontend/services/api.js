@@ -1,5 +1,30 @@
 // API Service Layer
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
+// Automatically detect API URL based on environment
+function getAPIBaseURL() {
+  // Allow override via window.API_BASE_URL
+  if (window.API_BASE_URL) {
+    return window.API_BASE_URL;
+  }
+  
+  // In production (Vercel), use relative URL (same domain)
+  // In development, use localhost:3000
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000/api';
+  }
+  
+  // Production: use relative URL (works with Vercel serverless function)
+  return '/api';
+}
+
+const API_BASE_URL = getAPIBaseURL();
+
+// Log API configuration for debugging
+console.log('API Service initialized:', {
+  baseURL: API_BASE_URL,
+  hostname: window.location.hostname,
+  protocol: window.location.protocol,
+  environment: window.location.hostname === 'localhost' ? 'development' : 'production'
+});
 
 class APIService {
   async createSession(userType = 'unknown') {

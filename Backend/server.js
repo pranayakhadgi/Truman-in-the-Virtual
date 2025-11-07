@@ -47,11 +47,24 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ['http://localhost:8000', 'http://localhost:3000', 'http://127.0.0.1:8000', 'http://127.0.0.1:3000'];
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  // Allow iframes for embedded content if needed
+  frameguard: { action: 'sameorigin' }
+}));
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or same-origin requests)
     if (!origin) return callback(null, true);
+    
+    // In Vercel/production, allow requests from the same domain (relative URLs)
+    // This handles cases where frontend and backend are on the same domain
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      // Allow same-origin requests (no origin header means same origin)
+      if (!origin || origin.includes(process.env.VERCEL_URL) || origin.includes('vercel.app')) {
+        return callback(null, true);
+      }
+    }
     
     // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -60,9 +73,9 @@ app.use(cors({
       // Log CORS rejection for debugging
       console.warn(`⚠️  CORS blocked origin: ${origin}`);
       console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
-      // In development, be more permissive
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`   Development mode: Allowing request`);
+      // In development or Vercel, be more permissive
+      if (process.env.NODE_ENV === 'development' || process.env.VERCEL || process.env.VERCEL_ENV) {
+        console.warn(`   Permissive mode: Allowing request`);
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
