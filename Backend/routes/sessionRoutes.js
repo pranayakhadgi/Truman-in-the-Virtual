@@ -208,6 +208,8 @@ router.patch('/:id/contact',
     body('email').optional().isEmail().withMessage('Invalid email format'),
     body('name').optional().trim(),
     body('phone').optional().trim(),
+    body('zipCode').optional().trim(),
+    body('optInForUpdates').optional().isBoolean().withMessage('optInForUpdates must be a boolean'),
     body('graduationYear').optional().trim(),
     body('interests').optional().isArray().withMessage('Interests must be an array')
   ],
@@ -223,11 +225,13 @@ router.patch('/:id/contact',
         return res.status(404).json({ error: 'Session not found' });
       }
       
-      const { name, email, phone, graduationYear, interests } = req.body;
+      const { name, email, phone, zipCode, optInForUpdates, graduationYear, interests } = req.body;
       
       if (name !== undefined) session.contactInfo.name = name;
       if (email !== undefined) session.contactInfo.email = email;
       if (phone !== undefined) session.contactInfo.phone = phone;
+      if (zipCode !== undefined) session.contactInfo.zipCode = zipCode;
+      if (optInForUpdates !== undefined) session.contactInfo.optInForUpdates = optInForUpdates;
       if (graduationYear !== undefined) session.contactInfo.graduationYear = graduationYear;
       if (interests !== undefined) session.contactInfo.interests = interests;
       

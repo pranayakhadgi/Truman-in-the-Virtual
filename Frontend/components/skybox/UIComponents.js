@@ -35,10 +35,10 @@ function ActionButtons() {
   return (
     <div className="absolute top-4 right-4 z-20 flex items-center space-x-3">
       <button 
-        onClick={() => window.open('https://www.truman.edu/admission-cost/landing-pages/apply-source-mogo/', '_blank')}
+        onClick={() => window.open('https://www.truman.edu/admission-cost/visit-truman/?q=/visit&', '_blank')}
         className="bg-white hover:bg-gray-100 text-purple-600 font-semibold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
-        Learn More
+        Visit Truman
       </button>
       <button 
         onClick={() => window.open('https://www.truman.edu/admission-cost/landing-pages/apply-source-mogo/', '_blank')}
@@ -110,24 +110,54 @@ function SkyboxNavigationControls({ currentSkybox, skyboxConfigs, onPrevious, on
 
 // View Map Button Component (Bottom Right)
 function ViewMapButton() {
+  const [isMapOpen, setIsMapOpen] = React.useState(false);
+  
+  // Get current skybox index from app state or window
+  const getCurrentSkyboxIndex = () => {
+    // Try to get from window if available
+    if (window.currentSkyboxIndex !== undefined) {
+      return window.currentSkyboxIndex;
+    }
+    return 0; // Default to first skybox
+  };
+  
+  const handleToggleMap = () => {
+    const newState = !isMapOpen;
+    setIsMapOpen(newState);
+    
+    if (newState) {
+      // Open map dialog
+      if (window.showMapDialog) {
+        window.showMapDialog(getCurrentSkyboxIndex());
+      } else {
+        console.error('showMapDialog function not available');
+      }
+    } else {
+      // Close map dialog
+      if (window.hideMapDialog) {
+        window.hideMapDialog();
+      }
+    }
+  };
+  
   return (
-    <div className="absolute bottom-4 right-4 z-20">
-      <button 
-        onClick={(e) => {
-          e.preventDefault();
-          console.log('View Map button clicked');
-          if (window.showMap) {
-            window.showMap();
-          } else {
-            console.error('showMap function not available');
-          }
-        }}
-        className="bg-white hover:bg-gray-100 text-purple-600 font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
-      >
-        <i className="fas fa-map-marked-alt"></i>
-        <span>View Map</span>
-      </button>
-    </div>
+    <>
+      <div className="absolute bottom-4 right-4 z-20">
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            handleToggleMap();
+          }}
+          className="bg-white hover:bg-gray-100 text-purple-600 font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
+        >
+          <i className="fas fa-map-marked-alt"></i>
+          <span>View Map</span>
+        </button>
+      </div>
+      
+      {/* Map Dialog Container - will be populated by MapView.js */}
+      <div id="map-dialog-container" style={{ display: 'none' }}></div>
+    </>
   );
 }
 

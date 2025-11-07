@@ -124,6 +124,11 @@ app.get('/placeholder', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/placeholder.html'));
 });
 
+// Queries route (question flow with questionTree integration)
+app.get('/queries', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/queries.html'));
+});
+
 // Handle favicon requests (prevent 404 errors)
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end(); // No Content

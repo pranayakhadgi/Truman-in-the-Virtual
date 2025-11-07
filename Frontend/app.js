@@ -122,6 +122,13 @@ function App() {
     }
   };
   
+  // Update current skybox index for map dialog
+  React.useEffect(() => {
+    if (window.updateCurrentSkyboxIndex) {
+      window.updateCurrentSkyboxIndex(currentSkybox);
+    }
+  }, [currentSkybox]);
+  
   // Navigation handlers
   const handlePreviousSkybox = () => {
     console.log('Previous button clicked!', { isTransitioning, currentSkybox });
@@ -130,6 +137,11 @@ function App() {
     
     setCurrentSkybox(prevIndex);
     setIsTransitioning(true);
+    
+    // Update skybox index for map
+    if (window.updateCurrentSkyboxIndex) {
+      window.updateCurrentSkyboxIndex(prevIndex);
+    }
     
     if (window.transitionToSkybox) {
       window.transitionToSkybox(prevIndex);
@@ -146,6 +158,11 @@ function App() {
     
     setCurrentSkybox(nextIndex);
     setIsTransitioning(true);
+    
+    // Update skybox index for map
+    if (window.updateCurrentSkyboxIndex) {
+      window.updateCurrentSkyboxIndex(nextIndex);
+    }
     
     if (window.transitionToSkybox) {
       window.transitionToSkybox(nextIndex);
