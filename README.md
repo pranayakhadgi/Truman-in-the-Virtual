@@ -161,13 +161,6 @@ truman-virtual-tour/
 
 ### API Key Configuration
 
-The Google Maps API key is located in `Frontend/index.html`:
-```html
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY" async defer></script>
-```
-
-**Current API Key**: `AIzaSyBoxO3KA_9_gIOE0j1gKhI16vhbAfi35qw`
-
 ### Enable Maps JavaScript API
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/library)
