@@ -4,6 +4,9 @@ function App() {
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [speechSynthesis, setSpeechSynthesis] = React.useState(null);
+  const [showCaptions, setShowCaptions] = React.useState(false);
+  const [currentCaptionText, setCurrentCaptionText] = React.useState('');
+  const [currentWordIndex, setCurrentWordIndex] = React.useState(-1);
   
   // Get skybox configs
   const skyboxConfigs = window.skyboxConfigs || [
@@ -12,7 +15,7 @@ function App() {
   ];
   
   // Initialize text-to-speech
-  React.useEffect(() => {
+    React.useEffect(() => {
     if ('speechSynthesis' in window) {
       const synth = window.speechSynthesis;
       setSpeechSynthesis(synth);
@@ -77,6 +80,10 @@ function App() {
     
     speechSynthesis.cancel();
     
+    // Always set caption text (component will handle visibility)
+    setCurrentCaptionText(text);
+    setCurrentWordIndex(-1); // Reset word index
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.9;
     utterance.pitch = 1.1;
@@ -87,18 +94,59 @@ function App() {
       utterance.voice = femaleVoice;
     }
     
+    // Split text into words for tracking (simple word boundary approach)
+    const allWords = text.split(/\s+/).filter(w => w.length > 0);
+    let wordCharPositions = [];
+    let charPos = 0;
+    
+    // Build character position map for each word
+    text.split(/(\s+)/).forEach(segment => {
+      if (segment.trim().length > 0) {
+        wordCharPositions.push({
+          start: charPos,
+          end: charPos + segment.length,
+          word: segment.trim()
+        });
+      }
+      charPos += segment.length;
+    });
+    
+    // Track word boundaries for highlighting
+    utterance.onboundary = (event) => {
+      if (event.name === 'word' || event.name === 'sentence') {
+        // Find which word contains this character index
+        const charIndex = event.charIndex;
+        
+        for (let i = 0; i < wordCharPositions.length; i++) {
+          const wordPos = wordCharPositions[i];
+          if (charIndex >= wordPos.start && charIndex < wordPos.end) {
+            setCurrentWordIndex(i);
+            break;
+          }
+        }
+      }
+    };
+    
     utterance.onstart = () => {
       setIsSpeaking(true);
+      setCurrentWordIndex(0); // Start at first word
     };
     
     utterance.onend = () => {
       setIsSpeaking(false);
+      // Clear caption text after a short delay
+      setTimeout(() => {
+        setCurrentCaptionText('');
+        setCurrentWordIndex(-1);
+      }, 500);
       if (onEnd) onEnd();
     };
     
     utterance.onerror = (event) => {
       console.error('Speech synthesis error:', event);
       setIsSpeaking(false);
+      setCurrentCaptionText('');
+      setCurrentWordIndex(-1);
     };
     
     speechSynthesis.speak(utterance);
@@ -115,10 +163,26 @@ function App() {
     if (isSpeaking) {
       speechSynthesis.cancel();
       setIsSpeaking(false);
+      setCurrentCaptionText('');
+      setCurrentWordIndex(-1);
     } else {
       const sceneName = skyboxConfigs[currentSkybox]?.name || 'Current scene';
       const script = sceneScripts[sceneName] || `Welcome to ${sceneName}.`;
       speakText(script);
+    }
+  };
+  
+  // Toggle captions
+  const toggleCaptions = () => {
+    setShowCaptions(!showCaptions);
+    // If turning off captions, clear current text
+    if (showCaptions) {
+      setCurrentCaptionText('');
+    } else if (isSpeaking) {
+      // If turning on captions while speaking, show current script
+      const sceneName = skyboxConfigs[currentSkybox]?.name || 'Current scene';
+      const script = sceneScripts[sceneName] || `Welcome to ${sceneName}.`;
+      setCurrentCaptionText(script);
     }
   };
   
@@ -130,48 +194,48 @@ function App() {
   }, [currentSkybox]);
   
   // Navigation handlers
-  const handlePreviousSkybox = () => {
-    console.log('Previous button clicked!', { isTransitioning, currentSkybox });
-    const prevIndex = currentSkybox > 0 ? currentSkybox - 1 : skyboxConfigs.length - 1;
-    console.log(`Previous button clicked: ${currentSkybox} -> ${prevIndex}`);
-    
-    setCurrentSkybox(prevIndex);
-    setIsTransitioning(true);
-    
+    const handlePreviousSkybox = () => {
+      console.log('Previous button clicked!', { isTransitioning, currentSkybox });
+      const prevIndex = currentSkybox > 0 ? currentSkybox - 1 : skyboxConfigs.length - 1;
+      console.log(`Previous button clicked: ${currentSkybox} -> ${prevIndex}`);
+      
+      setCurrentSkybox(prevIndex);
+      setIsTransitioning(true);
+      
     // Update skybox index for map
     if (window.updateCurrentSkyboxIndex) {
       window.updateCurrentSkyboxIndex(prevIndex);
     }
     
-    if (window.transitionToSkybox) {
-      window.transitionToSkybox(prevIndex);
-    } else {
-      console.error('transitionToSkybox function not available');
-      setIsTransitioning(false);
-    }
-  };
-  
-  const handleNextSkybox = () => {
-    console.log('Next button clicked!', { isTransitioning, currentSkybox });
-    const nextIndex = currentSkybox < skyboxConfigs.length - 1 ? currentSkybox + 1 : 0;
-    console.log(`Next button clicked: ${currentSkybox} -> ${nextIndex}`);
+      if (window.transitionToSkybox) {
+        window.transitionToSkybox(prevIndex);
+      } else {
+        console.error('transitionToSkybox function not available');
+        setIsTransitioning(false);
+      }
+    };
     
-    setCurrentSkybox(nextIndex);
-    setIsTransitioning(true);
-    
+    const handleNextSkybox = () => {
+      console.log('Next button clicked!', { isTransitioning, currentSkybox });
+      const nextIndex = currentSkybox < skyboxConfigs.length - 1 ? currentSkybox + 1 : 0;
+      console.log(`Next button clicked: ${currentSkybox} -> ${nextIndex}`);
+      
+      setCurrentSkybox(nextIndex);
+      setIsTransitioning(true);
+      
     // Update skybox index for map
     if (window.updateCurrentSkyboxIndex) {
       window.updateCurrentSkyboxIndex(nextIndex);
     }
     
-    if (window.transitionToSkybox) {
-      window.transitionToSkybox(nextIndex);
-    } else {
-      console.error('transitionToSkybox function not available');
-      setIsTransitioning(false);
-    }
-  };
-  
+      if (window.transitionToSkybox) {
+        window.transitionToSkybox(nextIndex);
+      } else {
+        console.error('transitionToSkybox function not available');
+        setIsTransitioning(false);
+      }
+    };
+    
   return (
     <div className="relative h-full w-full overflow-hidden">
       {/* 3D Scene */}
@@ -181,6 +245,8 @@ function App() {
       <ControlsMenu 
         isSpeaking={isSpeaking}
         onToggleSpeech={toggleSceneSpeech}
+        showCaptions={showCaptions}
+        onToggleCaptions={toggleCaptions}
       />
       <ActionButtons />
       <SceneLabelAndLogo 
@@ -194,14 +260,20 @@ function App() {
         onNext={handleNextSkybox}
       />
       <ViewMapButton />
+      <CaptionDisplay 
+        show={showCaptions}
+        text={currentCaptionText}
+        isSpeaking={isSpeaking}
+        currentWordIndex={currentWordIndex}
+      />
     </div>
   );
-}
-
-// Render App
-const rootElement = document.getElementById("root");
-const root = ReactDOM.createRoot(rootElement);
-root.render(<App />);
+  }
+  
+  // Render App
+  const rootElement = document.getElementById("root");
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(<App />);
 
 // Smooth fade-out of transition overlay once 3D scene is ready
 const transitionOverlay = document.getElementById('transition-overlay');

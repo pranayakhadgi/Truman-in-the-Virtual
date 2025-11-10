@@ -1,7 +1,7 @@
 // UIComponents.js - All UI components for the skybox tour
 
 // Controls Menu Component (Top Left)
-function ControlsMenu({ isSpeaking, onToggleSpeech }) {
+function ControlsMenu({ isSpeaking, onToggleSpeech, showCaptions, onToggleCaptions }) {
   return (
     <div className="absolute top-4 left-4 z-20">
       <div className="bg-purple-400 bg-opacity-80 backdrop-blur-sm rounded-lg p-3 flex items-center space-x-3 shadow-lg">
@@ -17,8 +17,12 @@ function ControlsMenu({ isSpeaking, onToggleSpeech }) {
         >
           <i className={`fas ${isSpeaking ? 'fa-volume-mute' : 'fa-volume-up'} text-lg`}></i>
         </button>
-        {/* Subtitles */}
-        <button className="text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50">
+        {/* Subtitles/Captions */}
+        <button 
+          onClick={onToggleCaptions}
+          className={`text-white hover:text-purple-200 transition-colors p-2 rounded-lg hover:bg-purple-500 hover:bg-opacity-50 ${showCaptions ? 'bg-purple-500 bg-opacity-50' : ''}`}
+          title={showCaptions ? 'Hide captions' : 'Show captions'}
+        >
           <i className="fas fa-closed-captioning text-lg"></i>
         </button>
         {/* More (Three Dots) */}
@@ -161,10 +165,123 @@ function ViewMapButton() {
   );
 }
 
+// Caption Display Component (Below caption button, top-left)
+function CaptionDisplay({ show, text, isSpeaking, currentWordIndex }) {
+  const textContainerRef = React.useRef(null);
+  const wordRefs = React.useRef({});
+  
+  // Split text into words for highlighting
+  const words = React.useMemo(() => {
+    if (!text) return [];
+    // Split by spaces but keep the spaces
+    return text.split(/(\s+)/);
+  }, [text]);
+  
+  // Filter out empty strings and get actual word indices
+  const actualWords = React.useMemo(() => {
+    return words.map((word, index) => ({
+      word,
+      index,
+      isWord: word.trim().length > 0
+    })).filter(item => item.isWord);
+  }, [words]);
+  
+  // Scroll to highlighted word
+  React.useEffect(() => {
+    if (currentWordIndex >= 0 && currentWordIndex < actualWords.length && textContainerRef.current) {
+      const wordElement = wordRefs.current[currentWordIndex];
+      if (wordElement) {
+        // Scroll the word into view smoothly
+        wordElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }
+  }, [currentWordIndex, actualWords.length]);
+  
+  if (!show || !text) {
+    return null;
+  }
+  
+  return (
+    <div className="absolute top-20 left-4 z-20 w-96 max-w-[calc(100vw-2rem)] max-h-[60vh]">
+      <div className="bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-95 backdrop-blur-md rounded-xl p-5 shadow-2xl border-2 border-purple-300 border-opacity-60 transform transition-all duration-300 hover:shadow-purple-500/50 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+          <div className="flex items-center space-x-2">
+            <div className="bg-purple-400 bg-opacity-30 rounded-lg p-1.5">
+              <i className="fas fa-closed-captioning text-purple-100 text-sm"></i>
+            </div>
+            <span className="text-purple-50 text-xs font-bold uppercase tracking-wider" style={{fontFamily: "'Courier New', monospace", letterSpacing: '0.1em'}}>
+              Captions
+            </span>
+          </div>
+          {isSpeaking && (
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2 h-2 bg-purple-200 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+              <div className="w-2 h-2 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+            </div>
+          )}
+        </div>
+        
+        {/* Caption Text with Word Highlighting */}
+        <div 
+          ref={textContainerRef}
+          className="bg-black bg-opacity-20 rounded-lg p-4 border border-purple-200 border-opacity-20 overflow-y-auto flex-1"
+          style={{ maxHeight: '50vh' }}
+        >
+          <p 
+            className="text-white text-sm leading-relaxed" 
+            style={{
+              fontFamily: "'Courier New', 'Monaco', 'Consolas', 'Lucida Console', monospace",
+              lineHeight: '1.8',
+              wordSpacing: '0.05em'
+            }}
+          >
+            {words.map((word, wordArrayIndex) => {
+              // Find if this word is in the actualWords array
+              const actualWordIndex = actualWords.findIndex(aw => aw.index === wordArrayIndex);
+              const isCurrentWord = actualWordIndex === currentWordIndex && isSpeaking;
+              const isPastWord = actualWordIndex >= 0 && actualWordIndex < currentWordIndex;
+              
+              return (
+                <span
+                  key={wordArrayIndex}
+                  ref={el => {
+                    if (actualWordIndex >= 0) {
+                      wordRefs.current[actualWordIndex] = el;
+                    }
+                  }}
+                  className={`inline transition-all duration-200 ${
+                    isCurrentWord 
+                      ? 'bg-purple-300 bg-opacity-80 text-purple-900 font-semibold px-1 rounded shadow-md' 
+                      : isPastWord
+                      ? 'text-purple-200'
+                      : 'text-white'
+                  }`}
+                  style={{
+                    fontFamily: "'Courier New', 'Monaco', 'Consolas', 'Lucida Console', monospace"
+                  }}
+                >
+                  {word}
+                </span>
+              );
+            })}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Make all components available globally
 window.ControlsMenu = ControlsMenu;
 window.ActionButtons = ActionButtons;
 window.SceneLabelAndLogo = SceneLabelAndLogo;
 window.SkyboxNavigationControls = SkyboxNavigationControls;
 window.ViewMapButton = ViewMapButton;
+window.CaptionDisplay = CaptionDisplay;
 
