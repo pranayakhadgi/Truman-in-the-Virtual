@@ -286,7 +286,7 @@ function App() {
         flexDirection: 'column', 
         alignItems: 'stretch', 
         justifyContent: 'flex-start',
-        pointerEvents: 'none' // Allow clicks to pass through to children
+        pointerEvents: 'auto' // Enable pointer events for the container
       }}
     >
       {/* 3D Scene Container with Flexbox */}
@@ -357,6 +357,16 @@ function App() {
             root.render(React.createElement(App));
             console.log('✅ React app rendered successfully');
             
+            // Remove transition overlay now that app is rendered
+            setTimeout(() => {
+              const overlay = document.getElementById('transition-overlay');
+              if (overlay) {
+                overlay.style.pointerEvents = 'none';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 1000);
+              }
+            }, 500);
+            
             // Verify render worked
             setTimeout(() => {
               if (rootElement.children.length === 0) {
@@ -410,12 +420,27 @@ function App() {
   waitForComponents();
 
 // Smooth fade-out of transition overlay once 3D scene is ready
-const transitionOverlay = document.getElementById('transition-overlay');
-if (transitionOverlay) {
-  setTimeout(() => {
+// This ensures the overlay doesn't block UI interactions
+function removeTransitionOverlay() {
+  const transitionOverlay = document.getElementById('transition-overlay');
+  if (transitionOverlay) {
+    console.log('Removing transition overlay...');
+    // First, disable pointer events so it stops blocking
+    transitionOverlay.style.pointerEvents = 'none';
+    // Then fade out
     transitionOverlay.style.opacity = '0';
+    // Finally remove from DOM after fade completes
     setTimeout(() => {
       transitionOverlay.remove();
+      console.log('Transition overlay removed');
     }, 1000);
-  }, 2000);
+  }
 }
+
+// Remove overlay after a short delay to ensure scene is loaded
+setTimeout(removeTransitionOverlay, 2000);
+
+// Also remove overlay when React app is confirmed rendered
+window.addEventListener('load', function() {
+  setTimeout(removeTransitionOverlay, 1500);
+});
