@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truman Virtual Tour - Personalized Experience</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/Frontend/favicon.ico" type="image/x-icon">
     
     <!-- Tailwind CSS -->
     <!-- Note: CDN version is fine for development. For production, use PostCSS plugin or Tailwind CLI -->
@@ -332,11 +332,12 @@
     </div>
 
     <!-- Load Configuration Files -->
-    <script src="config/questionTree.js"></script>
-    <script src="config/facilities.js"></script>
+    <!-- Use absolute paths for Vercel deployment -->
+    <script src="/Frontend/config/questionTree.js"></script>
+    <script src="/Frontend/config/facilities.js"></script>
     
     <!-- Load API Service -->
-    <script src="services/api.js"></script>
+    <script src="/Frontend/services/api.js"></script>
 
     <!-- Main Application Script -->
     <script>

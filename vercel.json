@@ -9,6 +9,10 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/Frontend/(.*)",
+      "destination": "/Frontend/$1"
+    },
+    {
       "source": "/tour",
       "destination": "/Frontend/index.html"
     },

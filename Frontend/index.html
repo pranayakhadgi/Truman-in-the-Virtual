@@ -90,17 +90,17 @@
     }, true);
   </script>
   
-  <script src="config.js"></script>
-  <script src="BuildingData.js"></script>
-  <script src="MapView.js"></script>
+  <script src="/Frontend/config.js"></script>
+  <script src="/Frontend/BuildingData.js"></script>
+  <script src="/Frontend/MapView.js"></script>
   
   <!-- Load skybox components - must load before app.js -->
-  <script type="text/babel" src="components/skybox/constants.js" onload="console.log('✅ constants.js loaded')" onerror="console.error('❌ Failed to load constants.js')"></script>
-  <script type="text/babel" src="components/skybox/SkyboxScene.js" onload="console.log('✅ SkyboxScene.js loaded')" onerror="console.error('❌ Failed to load SkyboxScene.js')"></script>
-  <script type="text/babel" src="components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
+  <script type="text/babel" src="/Frontend/components/skybox/constants.js" onload="console.log('✅ constants.js loaded')" onerror="console.error('❌ Failed to load constants.js')"></script>
+  <script type="text/babel" src="/Frontend/components/skybox/SkyboxScene.js" onload="console.log('✅ SkyboxScene.js loaded')" onerror="console.error('❌ Failed to load SkyboxScene.js')"></script>
+  <script type="text/babel" src="/Frontend/components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
   
   <!-- Your React App - loads after components -->
-  <script type="text/babel" src="app.js" onload="console.log('✅ app.js loaded')" onerror="console.error('❌ Failed to load app.js')"></script>
+  <script type="text/babel" src="/Frontend/app.js" onload="console.log('✅ app.js loaded')" onerror="console.error('❌ Failed to load app.js')"></script>
   
   <!-- Verify all scripts loaded -->
   <script>
