@@ -1,21 +1,29 @@
 // constants.js - Skybox configurations and constants
 
 // Skybox configurations
+// Note: Three.js CubeTextureLoader expects images in order: [px, nx, py, ny, pz, nz]
+// The folder name "field-skyboxes 2" has a space, which needs proper handling
 const skyboxConfigs = [
   {
     name: "Thousand Hills in Truman",
     images: [
-      "/public/field-skyboxes 2/FishPond/posx.jpg", "/public/field-skyboxes 2/FishPond/negx.jpg",
-      "/public/field-skyboxes 2/FishPond/posy.jpg", "/public/field-skyboxes 2/FishPond/negy.jpg",
-      "/public/field-skyboxes 2/FishPond/posz.jpg", "/public/field-skyboxes 2/FishPond/negz.jpg"
+      "/public/field-skyboxes 2/FishPond/posx.jpg", 
+      "/public/field-skyboxes 2/FishPond/negx.jpg",
+      "/public/field-skyboxes 2/FishPond/posy.jpg", 
+      "/public/field-skyboxes 2/FishPond/negy.jpg",
+      "/public/field-skyboxes 2/FishPond/posz.jpg", 
+      "/public/field-skyboxes 2/FishPond/negz.jpg"
     ]
   },
   {
     name: "The Quad",
     images: [
-      "/public/field-skyboxes 2/Sorsele3/posx.jpg", "/public/field-skyboxes 2/Sorsele3/negx.jpg",
-      "/public/field-skyboxes 2/Sorsele3/posy.jpg", "/public/field-skyboxes 2/Sorsele3/negy.jpg",
-      "/public/field-skyboxes 2/Sorsele3/posz.jpg", "/public/field-skyboxes 2/Sorsele3/negz.jpg"
+      "/public/field-skyboxes 2/Sorsele3/posx.jpg", 
+      "/public/field-skyboxes 2/Sorsele3/negx.jpg",
+      "/public/field-skyboxes 2/Sorsele3/posy.jpg", 
+      "/public/field-skyboxes 2/Sorsele3/negy.jpg",
+      "/public/field-skyboxes 2/Sorsele3/posz.jpg", 
+      "/public/field-skyboxes 2/Sorsele3/negz.jpg"
     ]
   }
 ];

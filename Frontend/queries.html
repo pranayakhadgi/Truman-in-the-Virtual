@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truman Virtual Tour - Personalized Experience</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
     <!-- Tailwind CSS -->
     <!-- Note: CDN version is fine for development. For production, use PostCSS plugin or Tailwind CLI -->
@@ -28,6 +28,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
@@ -42,10 +43,16 @@
             width: 100%;
             padding: 3rem;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
         }
 
         .step-indicator {
             display: flex;
+            flex-direction: row;
+            align-items: center;
             justify-content: center;
             gap: 1rem;
             margin-bottom: 2rem;
@@ -83,10 +90,19 @@
         }
 
         .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
             gap: 1rem;
             margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 640px) {
+            .options-grid {
+                justify-content: flex-start;
+            }
         }
 
         .option-card {
@@ -97,6 +113,13 @@
             transition: all 0.3s ease;
             background: white;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 200px;
+            min-width: 200px;
+            max-width: 300px;
         }
 
         .option-card:hover {
@@ -128,10 +151,19 @@
         }
 
         .facilities-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
             gap: 1rem;
             margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 640px) {
+            .facilities-grid {
+                justify-content: flex-start;
+            }
         }
 
         .facility-card {
@@ -141,6 +173,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex: 1 1 200px;
+            min-width: 200px;
+            max-width: 250px;
         }
 
         .facility-card:hover {
@@ -163,6 +202,10 @@
 
         .form-group {
             margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
         }
 
         .form-label {
@@ -188,8 +231,11 @@
 
         .button-group {
             display: flex;
-            gap: 1rem;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
             justify-content: center;
+            gap: 1rem;
             margin-top: 2rem;
         }
 
@@ -238,6 +284,10 @@
         .loading {
             text-align: center;
             padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .loading-spinner {
@@ -273,7 +323,7 @@
         <div class="step-indicator" id="stepIndicator"></div>
 
         <!-- Question Container -->
-        <div id="questionContainer">
+        <div id="questionContainer" style="display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; flex: 1;">
             <div class="loading">
                 <div class="loading-spinner"></div>
                 <p>Initializing your personalized experience...</p>
@@ -282,11 +332,11 @@
     </div>
 
     <!-- Load Configuration Files -->
-    <script src="/config/questionTree.js"></script>
-    <script src="/config/facilities.js"></script>
+    <script src="config/questionTree.js"></script>
+    <script src="config/facilities.js"></script>
     
     <!-- Load API Service -->
-    <script src="/services/api.js"></script>
+    <script src="services/api.js"></script>
 
     <!-- Main Application Script -->
     <script>
@@ -311,20 +361,32 @@
         // Initialize application
         async function init() {
             try {
-                // Create session
+                // Create session (with error handling)
                 if (window.apiService) {
-                    const response = await window.apiService.createSession('unknown');
-                    appState.sessionId = response.sessionId;
-                    console.log('Session created:', appState.sessionId);
+                    try {
+                        const response = await window.apiService.createSession('unknown');
+                        appState.sessionId = response.sessionId;
+                        console.log('Session created:', appState.sessionId);
+                    } catch (apiError) {
+                        console.warn('Failed to create session, continuing without backend:', apiError.message);
+                        // Generate a local session ID if backend is unavailable
+                        appState.sessionId = 'local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                        console.log('Using local session ID:', appState.sessionId);
+                    }
                 } else {
                     console.error('API service not loaded');
+                    // Generate a local session ID
+                    appState.sessionId = 'local-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                 }
 
-                // Load first step
+                // Load first step (always continue even if session creation failed)
                 renderStep(1);
             } catch (error) {
                 console.error('Initialization error:', error);
-                showError('Failed to initialize. Please refresh the page.');
+                // Don't block the user - show error but continue
+                showError('Note: Backend connection failed. Some features may be limited.');
+                // Still render the first step
+                renderStep(1);
             }
         }
 
@@ -711,13 +773,13 @@
                     </div>
                 `;
 
-                // Redirect to tour
+                // Redirect to tour (works with both dev server and backend)
                 setTimeout(() => {
                     window.location.href = '/tour';
                 }, 1500);
             } catch (error) {
                 console.error('Error completing flow:', error);
-                // Redirect anyway
+                // Redirect anyway (works with both dev server and backend)
                 window.location.href = '/tour';
             }
         }

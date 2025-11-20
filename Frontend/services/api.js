@@ -1,5 +1,15 @@
-// API Service Layer
-// Automatically detect API URL based on environment
+/**
+ * API Service Layer
+ * 
+ * This module provides a centralized API client for communicating with the backend.
+ * It automatically detects the environment (development vs production) and uses the
+ * appropriate API base URL:
+ * - Development: http://localhost:3000/api
+ * - Production: /api (relative URL for Vercel serverless functions)
+ * 
+ * All API methods include retry logic with exponential backoff and timeout handling
+ * to make the application more resilient to network issues.
+ */
 function getAPIBaseURL() {
   // Allow override via window.API_BASE_URL
   if (window.API_BASE_URL) {
@@ -27,42 +37,77 @@ console.log('API Service initialized:', {
 });
 
 class APIService {
-  async createSession(userType = 'unknown') {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userType })
-      });
-      
-      if (!response.ok) {
-        let errorMessage = 'Failed to create session';
-        try {
-          const error = await response.json();
-          errorMessage = error.error || errorMessage;
-        } catch (e) {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      // Handle CORS and network errors
-      if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-        console.error('API Error - CORS or Network Issue:', error);
-        console.error('   API Base URL:', API_BASE_URL);
-        console.error('   Current hostname:', window.location.hostname);
-        console.error('   Current origin:', window.location.origin);
+  async createSession(userType = 'unknown', retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        // Provide helpful error message
-        const errorMsg = window.location.hostname === 'localhost' 
-          ? 'Cannot connect to backend server. Make sure the backend is running on http://localhost:3000'
-          : 'Cannot connect to server. Please check your network connection or try again later.';
-        throw new Error(errorMsg);
+        const response = await fetch(`${API_BASE_URL}/sessions`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ userType }),
+          signal: controller.signal,
+          mode: 'cors',
+          credentials: 'include'
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          let errorMessage = 'Failed to create session';
+          try {
+            const error = await response.json();
+            errorMessage = error.error || errorMessage;
+          } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        // Handle abort (timeout)
+        if (error.name === 'AbortError') {
+          if (attempt < retries) {
+            console.warn(`Request timeout, retrying... (${attempt + 1}/${retries})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+            continue;
+          }
+          throw new Error('Request timeout. Please check if the backend server is running.');
+        }
+        
+        // Handle CORS and network errors
+        if (error.message.includes('CORS') || 
+            error.message.includes('Failed to fetch') || 
+            error.name === 'TypeError' ||
+            error.message.includes('NetworkError')) {
+          
+          if (attempt < retries) {
+            console.warn(`Network error, retrying... (${attempt + 1}/${retries})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+            continue;
+          }
+          
+          console.error('API Error - CORS or Network Issue:', error);
+          console.error('   API Base URL:', API_BASE_URL);
+          console.error('   Current hostname:', window.location.hostname);
+          console.error('   Current origin:', window.location.origin);
+          
+          // Provide helpful error message
+          const errorMsg = window.location.hostname === 'localhost' 
+            ? 'Cannot connect to backend server. Make sure the backend is running on http://localhost:3000'
+            : 'Cannot connect to server. Please check your network connection or try again later.';
+          throw new Error(errorMsg);
+        }
+        
+        // For other errors, don't retry
+        console.error('API Error - createSession:', error);
+        throw error;
       }
-      console.error('API Error - createSession:', error);
-      throw error;
     }
   }
 

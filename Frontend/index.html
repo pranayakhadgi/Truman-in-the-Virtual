@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Truman Virtual Tour - 3D Experience</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <!-- Tailwind CSS (Note: For production, use PostCSS plugin or Tailwind CLI) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +32,7 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoxO3KA_9_gIOE0j1gKhI16vhbAfi35qw" async defer></script>
 
   <!-- Styles -->
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
   
   <!-- Additional Styles for Multi-Skybox -->
   <style>
@@ -64,33 +64,64 @@
 </head>
 <body class="bg-gray-900 text-white">
   <!-- Smooth fade-in overlay for transition -->
-  <div id="transition-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #510c76 0%, #7a1fb3 50%, #510c76 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 1; transition: opacity 1s ease-out;">
-    <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto mb-8" style="opacity: 0.9;">
+  <div id="transition-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #510c76 0%, #7a1fb3 50%, #510c76 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; opacity: 1; transition: opacity 1s ease-out; gap: 1.5rem;">
+    <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto" style="opacity: 0.9;">
     <div class="loading-spinner" style="width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffd700; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-    <p class="mt-6 text-xl" style="font-family: 'Playfair Display', serif;">Loading 3D environment...</p>
+    <p class="text-xl" style="font-family: 'Playfair Display', serif;">Loading 3D environment...</p>
   </div>
   
-  <div id="root" class="h-screen w-full"></div>
+  <div id="root" class="h-screen w-full flex flex-col items-stretch justify-start overflow-hidden"></div>
   
   <!-- Map Container (hidden by default) -->
-  <div id="map" style="display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; z-index: 9999;"></div>
+  <div id="map" style="display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; z-index: 9999; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;"></div>
 
   <!-- Load configuration and building data before main app -->
-  <script src="/config.js"></script>
-  <script src="/BuildingData.js"></script>
-  <script src="/MapView.js"></script>
+  <script>
+    // Error handler for script loading failures
+    window.addEventListener('error', function(e) {
+      console.error('Script error:', e.filename, 'Line:', e.lineno, 'Error:', e.message);
+      if (e.filename && e.filename.includes('.js')) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,0,0,0.9); color: white; padding: 15px; border-radius: 8px; z-index: 10001; max-width: 600px; text-align: center;';
+        errorDiv.innerHTML = '<strong>⚠️ Script Error</strong><br>' + e.message + '<br><small>Check console for details</small>';
+        document.body.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 10000);
+      }
+    }, true);
+  </script>
   
-  <!-- Load skybox components -->
-  <script type="text/babel" src="/components/skybox/constants.js"></script>
-  <script type="text/babel" src="/components/skybox/SkyboxScene.js"></script>
-  <script type="text/babel" src="/components/skybox/UIComponents.js"></script>
+  <script src="config.js"></script>
+  <script src="BuildingData.js"></script>
+  <script src="MapView.js"></script>
   
-  <!-- Your React App -->
-  <script type="text/babel" src="/app.js"></script>
+  <!-- Load skybox components - must load before app.js -->
+  <script type="text/babel" src="components/skybox/constants.js" onload="console.log('✅ constants.js loaded')" onerror="console.error('❌ Failed to load constants.js')"></script>
+  <script type="text/babel" src="components/skybox/SkyboxScene.js" onload="console.log('✅ SkyboxScene.js loaded')" onerror="console.error('❌ Failed to load SkyboxScene.js')"></script>
+  <script type="text/babel" src="components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
+  
+  <!-- Your React App - loads after components -->
+  <script type="text/babel" src="app.js" onload="console.log('✅ app.js loaded')" onerror="console.error('❌ Failed to load app.js')"></script>
+  
+  <!-- Verify all scripts loaded -->
+  <script>
+    // Wait for all scripts to load, then verify
+    window.addEventListener('load', function() {
+      console.log('✅ All scripts loaded');
+      console.log('Skybox configs available:', !!window.skyboxConfigs);
+      console.log('SkyboxScene available:', !!window.SkyboxScene);
+      console.log('App component ready');
+      
+      // Check if React root was created
+      const root = document.getElementById('root');
+      if (root && root.children.length === 0) {
+        console.warn('⚠️ React root is empty - app may not have rendered');
+      }
+    });
+  </script>
   <!-- Add before closing </body> tag -->
-<div class="loading" id="loading">Loading 3D Environment...</div>
+<div class="loading" id="loading" style="display: flex; align-items: center; justify-content: center;">Loading 3D Environment...</div>
 
 <!-- Dialog Box for Annotations -->
-<div id="dialogBox"></div>
+<div id="dialogBox" style="display: flex; align-items: center; justify-content: center;"></div>
 </body>
 </html> 

@@ -77,54 +77,60 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center text-white">
-    <div class="container mx-auto px-4 text-center fade-in">
-        <!-- Truman Logo -->
-        <div class="mb-8 slide-up">
-            <img src="/public/logo/logo.svg" alt="Truman State University" class="truman-logo h-20 w-auto mx-auto mb-6">
+    <div class="container mx-auto px-4 text-center fade-in flex flex-col items-center justify-center w-full max-w-4xl">
+        <!-- Header Section with Flexbox -->
+        <div class="flex flex-col items-center justify-center mb-8 w-full">
+            <!-- Truman Logo -->
+            <div class="mb-8 slide-up flex items-center justify-center">
+                <img src="/public/logo/logo.svg" alt="Truman State University" class="truman-logo h-20 w-auto mb-6">
+            </div>
+            
+            <!-- Main Message -->
+            <div class="mb-12 slide-up flex flex-col items-center justify-center" style="animation-delay: 0.2s;">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">
+                    Preparing Your Virtual Tour
+                </h1>
+                <p class="text-xl md:text-2xl text-white/90 pulse-text">
+                    Loading your personalized 3D experience...
+                </p>
+            </div>
         </div>
         
-        <!-- Main Message -->
-        <div class="mb-12 slide-up" style="animation-delay: 0.2s;">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: 'Playfair Display', serif;">
-                Preparing Your Virtual Tour
-            </h1>
-            <p class="text-xl md:text-2xl text-white/90 pulse-text">
-                Loading your personalized 3D experience...
-            </p>
-        </div>
-        
-        <!-- Loading Spinner -->
-        <div class="mb-8 slide-up" style="animation-delay: 0.4s;">
-            <div class="loading-spinner mx-auto"></div>
-        </div>
-        
-        <!-- Progress Steps -->
-        <div class="max-w-md mx-auto slide-up" style="animation-delay: 0.6s;">
-            <div class="space-y-4 text-left">
-                <div class="flex items-center space-x-3">
-                    <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-check text-white text-xs"></i>
+        <!-- Loading Section with Flexbox -->
+        <div class="flex flex-col items-center justify-center mb-8 w-full">
+            <!-- Loading Spinner -->
+            <div class="mb-8 slide-up flex items-center justify-center" style="animation-delay: 0.4s;">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <!-- Progress Steps -->
+            <div class="max-w-md mx-auto slide-up flex flex-col items-stretch" style="animation-delay: 0.6s;">
+                <div class="space-y-4 text-left flex flex-col">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-white text-xs"></i>
+                        </div>
+                        <span class="text-white/90">Session initialized</span>
                     </div>
-                    <span class="text-white/90">Session initialized</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-check text-white text-xs"></i>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-white text-xs"></i>
+                        </div>
+                        <span class="text-white/90">Preferences saved</span>
                     </div>
-                    <span class="text-white/90">Preferences saved</span>
-                </div>
-                <div class="flex items-center space-x-3" id="loading-3d">
-                    <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center flex-shrink-0">
-                        <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                    <div class="flex items-center space-x-3" id="loading-3d">
+                        <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center flex-shrink-0">
+                            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                        </div>
+                        <span class="text-white/90">Loading 3D environment...</span>
                     </div>
-                    <span class="text-white/90">Loading 3D environment...</span>
                 </div>
             </div>
         </div>
         
-        <!-- Fun Facts -->
-        <div class="mt-12 max-w-lg mx-auto slide-up" style="animation-delay: 0.8s;">
-            <p class="text-sm text-white/70 italic">
+        <!-- Fun Facts with Flexbox -->
+        <div class="mt-12 max-w-lg mx-auto slide-up flex items-center justify-center" style="animation-delay: 0.8s;">
+            <p class="text-sm text-white/70 italic flex items-center justify-center">
                 <i class="fas fa-lightbulb mr-2"></i>
                 <span id="fun-fact">Preparing immersive skybox scenes...</span>
             </p>

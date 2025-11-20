@@ -1,4 +1,20 @@
-// Session Routes - API Endpoints
+/**
+ * Session Routes - API Endpoints
+ * 
+ * This module defines all API endpoints related to session management:
+ * - Creating new sessions
+ * - Retrieving session data
+ * - Saving user responses to questions
+ * - Saving facility selections
+ * - Updating contact information
+ * - Marking sessions as complete
+ * 
+ * All routes include:
+ * - Input validation using express-validator
+ * - Rate limiting to prevent abuse
+ * - MongoDB injection protection via mongo-sanitize
+ * - Error handling and proper HTTP status codes
+ */
 const express = require('express');
 const router = express.Router();
 const Session = require('../models/Session');

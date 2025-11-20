@@ -1,0 +1,18 @@
+# Files to ignore during Vercel deployment
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+.git/
+.vscode/
+.idea/
+*.md
+!README.md
+screenshots/
+start.sh
+*.pyc
+__pycache__/
+Backend/node_modules/
+Frontend/__pycache__/
+

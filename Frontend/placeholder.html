@@ -18,6 +18,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
@@ -27,6 +28,11 @@
             text-align: center;
             padding: 2rem;
             max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
         }
 
         h1 {
@@ -94,13 +100,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Truman Virtual Tour</h1>
-        <p>Your immersive campus experience is ready</p>
-        <button class="enter-button" onclick="enterSkybox()">
-            Enter Skybox Environment
-        </button>
-        <div id="loading-message" style="display: none; margin-top: 1rem;">
-            <p>Initializing 3D environment<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+        <div class="flex flex-col items-center justify-center gap-4">
+            <h1>Welcome to Truman Virtual Tour</h1>
+            <p>Your immersive campus experience is ready</p>
+        </div>
+        <div class="flex flex-col items-center justify-center gap-4">
+            <button class="enter-button flex items-center justify-center" onclick="enterSkybox()">
+                <span>Enter Skybox Environment</span>
+            </button>
+            <div id="loading-message" style="display: none; margin-top: 1rem;" class="flex items-center justify-center">
+                <p>Initializing 3D environment<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+            </div>
         </div>
     </div>
 

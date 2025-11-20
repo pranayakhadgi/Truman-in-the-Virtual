@@ -1,4 +1,19 @@
-// Main App Component
+/**
+ * Main React Application Component
+ * 
+ * This is the root component of the 3D virtual tour application.
+ * It manages the overall application state including:
+ * - Current skybox scene index
+ * - Text-to-speech narration state
+ * - Caption display state
+ * - Scene transitions
+ * 
+ * The component renders the 3D skybox scene along with all UI controls
+ * (navigation buttons, audio controls, map button, etc.).
+ * 
+ * Component dependencies are loaded from window object (loaded via script tags)
+ * to support the Babel-in-browser transpilation setup.
+ */
 function App() {
   const [currentSkybox, setCurrentSkybox] = React.useState(0);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
@@ -13,6 +28,32 @@ function App() {
     { name: "Thousand Hills in Truman" },
     { name: "The Quad" }
   ];
+  
+  // Get component references from window (needed for JSX)
+  const SkyboxScene = window.SkyboxScene;
+  const ControlsMenu = window.ControlsMenu;
+  const ActionButtons = window.ActionButtons;
+  const SceneLabelAndLogo = window.SceneLabelAndLogo;
+  const SkyboxNavigationControls = window.SkyboxNavigationControls;
+  const ViewMapButton = window.ViewMapButton;
+  const CaptionDisplay = window.CaptionDisplay;
+  
+  // Validate components are available
+  if (!SkyboxScene || !ControlsMenu || !ActionButtons || !SceneLabelAndLogo || 
+      !SkyboxNavigationControls || !ViewMapButton || !CaptionDisplay) {
+    console.error('❌ Missing components:', {
+      SkyboxScene: !!SkyboxScene,
+      ControlsMenu: !!ControlsMenu,
+      ActionButtons: !!ActionButtons,
+      SceneLabelAndLogo: !!SceneLabelAndLogo,
+      SkyboxNavigationControls: !!SkyboxNavigationControls,
+      ViewMapButton: !!ViewMapButton,
+      CaptionDisplay: !!CaptionDisplay
+    });
+    return React.createElement('div', { 
+      style: { padding: '20px', color: 'white', textAlign: 'center' } 
+    }, 'Loading components...');
+  }
   
   // Initialize text-to-speech
     React.useEffect(() => {
@@ -236,44 +277,137 @@ function App() {
       }
     };
     
+  // Use JSX with local component references (should work now that we have local vars)
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {/* 3D Scene */}
-      <SkyboxScene />
+    <div 
+      className="relative h-full w-full overflow-hidden" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'stretch', 
+        justifyContent: 'flex-start',
+        pointerEvents: 'none' // Allow clicks to pass through to children
+      }}
+    >
+      {/* 3D Scene Container with Flexbox */}
+      <div style={{ 
+        flex: '1', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        position: 'relative',
+        pointerEvents: 'auto' // Scene needs pointer events for camera controls
+      }}>
+        {SkyboxScene && <SkyboxScene />}
+      </div>
       
-      {/* UI Components */}
-      <ControlsMenu 
+      {/* UI Components - Using absolute positioning but with flexbox for internal layouts */}
+      {/* These are positioned absolutely, so they overlay the scene */}
+      {ControlsMenu && <ControlsMenu 
         isSpeaking={isSpeaking}
         onToggleSpeech={toggleSceneSpeech}
         showCaptions={showCaptions}
         onToggleCaptions={toggleCaptions}
-      />
-      <ActionButtons />
-      <SceneLabelAndLogo 
+      />}
+      {ActionButtons && <ActionButtons />}
+      {SceneLabelAndLogo && <SceneLabelAndLogo 
         currentSkybox={currentSkybox}
         skyboxConfigs={skyboxConfigs}
-      />
-      <SkyboxNavigationControls
+      />}
+      {SkyboxNavigationControls && <SkyboxNavigationControls
         currentSkybox={currentSkybox}
         skyboxConfigs={skyboxConfigs}
         onPrevious={handlePreviousSkybox}
         onNext={handleNextSkybox}
-      />
-      <ViewMapButton />
-      <CaptionDisplay 
+      />}
+      {ViewMapButton && <ViewMapButton />}
+      {CaptionDisplay && <CaptionDisplay 
         show={showCaptions}
         text={currentCaptionText}
         isSpeaking={isSpeaking}
         currentWordIndex={currentWordIndex}
-      />
+      />}
     </div>
   );
   }
   
-  // Render App
-  const rootElement = document.getElementById("root");
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(<App />);
+  // Wait for all components to be available before rendering
+  function waitForComponents(maxAttempts = 50) {
+    let attempts = 0;
+    
+    const checkAndRender = () => {
+      attempts++;
+      const missing = [];
+      
+      if (!window.SkyboxScene) missing.push('SkyboxScene');
+      if (!window.ControlsMenu) missing.push('ControlsMenu');
+      if (!window.ActionButtons) missing.push('ActionButtons');
+      if (!window.SceneLabelAndLogo) missing.push('SceneLabelAndLogo');
+      if (!window.SkyboxNavigationControls) missing.push('SkyboxNavigationControls');
+      if (!window.ViewMapButton) missing.push('ViewMapButton');
+      if (!window.CaptionDisplay) missing.push('CaptionDisplay');
+      
+      if (missing.length === 0) {
+        console.log('✅ All React components loaded, rendering app...');
+        const rootElement = document.getElementById("root");
+        if (rootElement) {
+          try {
+            const root = ReactDOM.createRoot(rootElement);
+            // Use React.createElement to ensure components are properly referenced
+            root.render(React.createElement(App));
+            console.log('✅ React app rendered successfully');
+            
+            // Verify render worked
+            setTimeout(() => {
+              if (rootElement.children.length === 0) {
+                console.error('❌ React app rendered but root is empty!');
+              } else {
+                console.log('✅ React app content verified in DOM');
+              }
+            }, 500);
+          } catch (error) {
+            console.error('❌ Error rendering React app:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Show error to user
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; z-index: 10001; max-width: 600px; text-align: center;';
+            errorDiv.innerHTML = '<h2>⚠️ Rendering Error</h2><p>' + error.message + '</p><p><small>Check console for details</small></p>';
+            document.body.appendChild(errorDiv);
+          }
+        } else {
+          console.error('❌ Root element not found!');
+        }
+      } else if (attempts < maxAttempts) {
+        if (attempts % 10 === 0) {
+          console.log('⏳ Still waiting for components:', missing.join(', '));
+        }
+        setTimeout(checkAndRender, 100);
+      } else {
+        console.error('❌ Timeout waiting for components:', missing.join(', '));
+        console.error('Available components:', {
+          SkyboxScene: !!window.SkyboxScene,
+          ControlsMenu: !!window.ControlsMenu,
+          ActionButtons: !!window.ActionButtons,
+          SceneLabelAndLogo: !!window.SceneLabelAndLogo,
+          SkyboxNavigationControls: !!window.SkyboxNavigationControls,
+          ViewMapButton: !!window.ViewMapButton,
+          CaptionDisplay: !!window.CaptionDisplay
+        });
+      }
+    };
+    
+    // Start checking
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAndRender);
+    } else {
+      // Give Babel a moment to transpile
+      setTimeout(checkAndRender, 200);
+    }
+  }
+  
+  // Start waiting for components
+  waitForComponents();
 
 // Smooth fade-out of transition overlay once 3D scene is ready
 const transitionOverlay = document.getElementById('transition-overlay');

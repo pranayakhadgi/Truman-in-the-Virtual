@@ -1,6 +1,18 @@
-// SkyboxScene.js - Main 3D Skybox Scene Component
-// This component handles the Three.js scene, skybox rendering, annotations, and transitions
-
+/**
+ * SkyboxScene Component - Main 3D Scene Renderer
+ * 
+ * This React component manages the Three.js 3D environment including:
+ * - WebGL renderer setup and canvas management
+ * - Skybox texture loading and rendering
+ * - Camera controls (OrbitControls for navigation)
+ * - Scene transitions between different skybox environments
+ * - Interactive annotations (clickable markers in 3D space)
+ * - Auto-rotation functionality
+ * - Window resize handling
+ * 
+ * The component uses Three.js for WebGL rendering and creates a 360-degree
+ * immersive environment using cube texture mapping on a sphere geometry.
+ */
 function SkyboxScene() {
   const mountRef = React.useRef(null);
   const [currentSkybox, setCurrentSkybox] = React.useState(0);
@@ -34,6 +46,9 @@ function SkyboxScene() {
       );
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      // Ensure canvas doesn't block pointer events for UI elements
+      renderer.domElement.style.pointerEvents = 'auto';
+      renderer.domElement.style.zIndex = '1';
       mountRef.current.appendChild(renderer.domElement);
 
       // Hide global loading indicator if present
@@ -66,8 +81,31 @@ function SkyboxScene() {
       // Load skybox textures
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
-        console.log('Loading skybox:', config.name, 'with images:', config.images);
-        return loader.load(config.images, onLoad, undefined, onError);
+        console.log('Loading skybox:', config.name);
+        console.log('Image paths:', config.images);
+        
+        // Use paths as-is (browser will handle URL encoding automatically)
+        const imagePaths = config.images;
+        
+        console.log('Image paths to load:', imagePaths);
+        
+        return loader.load(
+          imagePaths, 
+          (texture) => {
+            console.log('✅ Skybox texture loaded successfully');
+            if (onLoad) onLoad(texture);
+          }, 
+          (progress) => {
+            if (progress && progress.total) {
+              console.log('Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
+            }
+          },
+          (error) => {
+            console.error('❌ Failed to load skybox images:', error);
+            console.error('Failed paths:', imagePaths);
+            if (onError) onError(error);
+          }
+        );
       };
       
       let currentTexture = loadSkybox(
@@ -109,9 +147,21 @@ function SkyboxScene() {
           currentTexture = texture;
         },
         (error) => {
-          console.error('Failed to load initial skybox:', skyboxConfigs[currentSkybox].name, error);
+          console.error('❌ Failed to load initial skybox:', skyboxConfigs[currentSkybox].name);
+          console.error('Error details:', error);
+          console.error('Image paths attempted:', skyboxConfigs[currentSkybox].images);
+          
           // Fallback to a simple color
-          skyboxMaterial.color = new THREE.Color(0x87CEEB);
+          if (skyboxMaterial) {
+            skyboxMaterial.color = new THREE.Color(0x87CEEB);
+          }
+          
+          // Show error message to user
+          const errorMsg = document.createElement('div');
+          errorMsg.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,0,0,0.9); color: white; padding: 15px; border-radius: 8px; z-index: 10001; max-width: 600px; text-align: center;';
+          errorMsg.innerHTML = '<strong>⚠️ Skybox Images Failed to Load</strong><br>Check console for details. Using fallback color.';
+          document.body.appendChild(errorMsg);
+          setTimeout(() => errorMsg.remove(), 5000);
         }
       );
 
@@ -694,6 +744,9 @@ function SkyboxScene() {
   return <div ref={mountRef} className="absolute inset-0" />;
 }
 
-// Make available globally
-window.SkyboxScene = SkyboxScene;
+// Make available globally - ensure it's set immediately
+if (typeof window !== 'undefined') {
+  window.SkyboxScene = SkyboxScene;
+  console.log('✅ SkyboxScene component registered globally');
+}
 

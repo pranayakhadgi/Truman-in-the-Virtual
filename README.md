@@ -1,278 +1,184 @@
 # Truman Virtual Tour
 
-An immersive 3D virtual tour application for Truman State University that allows prospective students and visitors to explore the campus from anywhere in the world through an interactive browser-based 3D environment.
+An immersive 3D virtual tour application for Truman State University that allows prospective students and visitors to explore the campus through an interactive browser-based 3D environment.
 
-## What Problem Does This Solve?
+## Overview
 
-The Truman Virtual Tour addresses the challenge of providing accessible, engaging campus exploration for prospective students who cannot physically visit the campus. It offers:
-
-- **Remote Campus Exploration**: Experience Truman's campus locations in 360° immersive environments
-- **Interactive Learning**: Click on annotations to learn about key campus locations and features
-- **Accessibility**: Text-to-speech narration and intuitive navigation for all users
-- **Personalized Experience**: Multi-step questionnaire to customize the tour experience
-- **Seamless Application Process**: Direct integration with Truman's application portal
-- **Location Mapping**: Interactive map showing exact locations of each scene
-
-## Features
-
-- **Interactive 3D Skybox Environments**: Explore "Thousand Hills in Truman" and "The Quad" in full 360° views
-- **Auto-Rotating Camera**: Smooth automatic rotation for hands-free exploration
-- **Interactive Annotations**: Click on location markers to learn about campus features
-- **Text-to-Speech Narration**: Female voice narration for each scene
-- **Welcome Flow**: Multi-step form to collect visitor information and interests
-- **Question Flow (queries.html)**: Personalized questionnaire with branching logic
-- **Database Integration**: MongoDB Atlas for storing user sessions and responses
-- **Interactive Map Dialog**: Bottom-right dialog showing exact location of current scene
-- **Direct Application Link**: Quick access to Truman's application portal
-- **Visit Truman Link**: Direct link to campus visit scheduling
-
-## Screenshots
-
-### Welcome Page
-<img width="1396" height="785" alt="Screen Shot 2025-11-06 at 12 17 46 PM" src="https://github.com/user-attachments/assets/093f5a28-2c47-4126-8b4c-f8436e642401" />
-
-*Interactive welcome page with campus slideshow and tour initiation*
-
-### Skybox Environment - The Quad
-<img width="1399" height="784" alt="Screen Shot 2025-11-06 at 8 36 07 PM" src="https://github.com/user-attachments/assets/1df4ac45-6bc2-48da-aeb7-916fa087db76" />
-
-*Immersive 3D environment showing Truman's iconic Quad with AI autoamted voice tour*
-
-### Application Redirect
-<img width="1395" height="785" alt="Screen Shot 2025-11-06 at 12 18 27 PM" src="https://github.com/user-attachments/assets/f6a1a94f-0ba8-4dae-867d-4ba2becc718a" />
-
-*Seamless redirect to Truman's online application portal*
-
-## Quick Start
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB Atlas account (or local MongoDB)
-- Google Maps API key (for map features)
-
-### Installation
-
-```bash
-# Install dependencies
-cd Backend
-npm install
-
-# Create .env file in Backend/ directory
-# See Environment Setup section below
-```
-
-### Environment Setup
-
-Create a `.env` file in the `Backend/` directory:
-
-```env
-# MongoDB Atlas Connection String
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
-
-# Server Port (default: 3000)
-PORT=3000
-
-# Node Environment
-NODE_ENV=development
-
-# Allowed CORS Origins (comma-separated)
-ALLOWED_ORIGINS=http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000,http://127.0.0.1:3000
-```
-
-### Running the Application
-
-```bash
-# Start backend server
-cd Backend
-npm start
-
-# Access the application
-# Open http://localhost:3000 in your browser
-```
-
-### Application Flow
-
-1. **Welcome Page** (`/`) - Landing page with campus slideshow
-2. **Queries Page** (`/queries`) - Personalized questionnaire flow
-3. **3D Tour** (`/tour`) - Interactive skybox environment
-4. **Map Dialog** - Click "View Map" button to see location
+This application provides a complete virtual campus experience with:
+- Interactive 3D skybox environments using Three.js
+- Personalized questionnaire flow to customize the tour
+- Database integration for session tracking
+- Google Maps integration for location visualization
+- Text-to-speech narration for accessibility
 
 ## Project Structure
 
 ```
-truman-virtual-tour/
+virtual/
+├── api/
+│   └── index.js              # Vercel serverless function entry point
 ├── Backend/
 │   ├── config/
-│   │   └── database.js          # MongoDB connection
+│   │   └── database.js      # MongoDB connection configuration
 │   ├── models/
-│   │   └── Session.js           # Session data model
+│   │   └── Session.js        # Session data model
 │   ├── routes/
-│   │   └── sessionRoutes.js     # API endpoints
-│   ├── server.js                # Express server
-│   └── .env                     # Environment variables
+│   │   └── sessionRoutes.js  # API route handlers
+│   └── server.js             # Express server
 ├── Frontend/
 │   ├── components/
-│   │   ├── skybox/
-│   │   │   ├── constants.js     # Skybox configurations
-│   │   │   ├── SkyboxScene.js   # 3D scene component
-│   │   │   └── UIComponents.js  # UI components
-│   │   ├── welcome-flow/        # Welcome flow components
-│   │   └── context/             # React context
-│   ├── config/
-│   │   ├── questionTree.js      # Question flow logic
-│   │   └── facilities.js        # Facility data
+│   │   ├── skybox/           # 3D scene components
+│   │   ├── welcome-flow/     # Questionnaire components
+│   │   └── shared/           # Shared React components
+│   ├── config/               # Configuration files
 │   ├── services/
-│   │   └── api.js               # API service layer
-│   ├── app.js                   # Main React app
-│   ├── index.html               # 3D tour page
-│   ├── queries.html             # Question flow page
-│   ├── welcome.html             # Landing page
-│   └── MapView.js               # Google Maps integration
-├── public/                      # Static assets
-│   ├── field-skyboxes 2/        # Skybox images
-│   ├── images/                  # Campus images
-│   └── logo/                    # Truman logo
-└── README.md                    # This file
+│   │   └── api.js            # API service layer
+│   ├── app.js                # Main React application
+│   ├── index.html            # 3D tour page
+│   ├── queries.html          # Questionnaire page
+│   └── welcome.html          # Landing page
+└── public/                   # Static assets (images, logos, skyboxes)
 ```
+
+## Application Flow
+
+1. Welcome Page (`/`) - Landing page with campus slideshow
+2. Questionnaire (`/queries`) - Multi-step form to collect user preferences
+3. 3D Tour (`/tour`) - Interactive skybox environment with navigation
 
 ## Technologies
 
-- **Frontend**: React, Three.js, TailwindCSS, Babel
-- **Backend**: Node.js, Express.js, MongoDB (Mongoose)
-- **3D Rendering**: Three.js WebGL
-- **Text-to-Speech**: Web Speech API
-- **Maps**: Google Maps JavaScript API
-- **Database**: MongoDB Atlas
+- Frontend: React, Three.js, TailwindCSS, HTML5
+- Backend: Node.js, Express.js
+- Database: MongoDB Atlas
+- Deployment: Vercel (serverless functions)
+- Maps: Google Maps JavaScript API
+
+## Local Development
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- Python 3 (for dev server)
+- MongoDB Atlas account
+
+### Setup
+
+1. Install backend dependencies:
+```bash
+cd Backend
+npm install
+```
+
+2. Create `.env` file in `Backend/` directory:
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+PORT=3000
+NODE_ENV=development
+```
+
+3. Start servers (two terminals):
+
+Terminal 1 - Backend:
+```bash
+cd Backend
+npm start
+```
+
+Terminal 2 - Frontend:
+```bash
+cd Frontend
+python3 dev-server.py
+```
+
+4. Access application:
+- Frontend: http://localhost:8000
+- Backend API: http://localhost:3000/api/health
+
+## Deployment
+
+### Vercel Deployment
+
+1. Set up MongoDB Atlas:
+   - Create free cluster
+   - Add database user
+   - Configure network access (allow 0.0.0.0/0)
+   - Get connection string
+
+2. Deploy to Vercel:
+   - Connect GitHub repository
+   - Add environment variables:
+     - `MONGODB_URI`: MongoDB connection string
+     - `NODE_ENV`: production
+   - Deploy
+
+3. Configuration:
+   - `vercel.json` handles routing
+   - `api/index.js` serves as serverless function
+   - Frontend files served from `Frontend/` directory
+   - Public assets from `public/` directory
+
+### Environment Variables
+
+Required for production:
+- `MONGODB_URI`: MongoDB Atlas connection string
+- `NODE_ENV`: Set to `production`
 
 ## API Endpoints
 
-### Session Management
 - `POST /api/sessions` - Create new session
 - `GET /api/sessions/:id` - Get session details
-- `POST /api/sessions/:id/responses` - Add question response
-- `POST /api/sessions/:id/facilities` - Add facility selection
-- `PATCH /api/sessions/:id/contact` - Update contact info
+- `POST /api/sessions/:id/responses` - Save question response
+- `POST /api/sessions/:id/facilities` - Save facility selection
+- `PATCH /api/sessions/:id/contact` - Update contact information
 - `POST /api/sessions/:id/complete` - Mark session complete
-
-### Health Check
-- `GET /api/health` - Server and database status
-
-## Google Maps Setup
-
-### API Key Configuration
-
-### Enable Maps JavaScript API
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/library)
-2. Search for "Maps JavaScript API"
-3. Click "Enable"
-4. Wait 2-5 minutes for activation
-
-### Location Coordinates
-
-- **Thousand Hills State Park**: `40.34508954846465, -92.57451304955303`
-- **Truman State University Quad**: `40.18873778168771, -92.58083505450213`
-
-### Common Errors
-
-- **ApiNotActivatedMapError**: Enable Maps JavaScript API in Google Cloud Console
-- **InvalidKeyMapError**: Verify API key and restrictions
-- **RefererNotAllowedMapError**: Adjust HTTP referrer restrictions
+- `GET /api/health` - Health check endpoint
 
 ## Database Schema
 
-### Session Model
-- `sessionId` (UUID) - Unique session identifier
-- `userType` - User classification (prospective_student, parent, etc.)
-- `interest` - Area of interest (computer_science, liberal_arts, etc.)
-- `selectedFacilities` - Array of selected facilities
-- `contactInfo` - Contact information (email, name, phone, zipCode, optInForUpdates)
-- `responses` - Array of question/answer pairs
-- `status` - Session status (active, completed, abandoned)
+Session model includes:
+- `sessionId`: Unique identifier
+- `userType`: User classification
+- `interest`: Area of interest
+- `selectedFacilities`: Array of selected facilities
+- `contactInfo`: Contact details
+- `responses`: Question/answer pairs
+- `status`: Session status
 
-## File Flow
+## Google Maps Setup
 
-```
-welcome.html → queries.html → index.html (skybox)
-```
+1. Enable Maps JavaScript API in Google Cloud Console
+2. Create API key
+3. Configure API key restrictions
+4. Update `config.js` with API key (or use environment variable)
 
-1. User starts at `/` (welcome.html)
-2. Redirects to `/queries` (queries.html) for personalized questionnaire
-3. Completes flow and redirects to `/tour` (index.html) for 3D experience
-4. Can click "View Map" to see location in dialog overlay
+Location coordinates:
+- Thousand Hills State Park: 40.34508954846465, -92.57451304955303
+- Truman State University Quad: 40.18873778168771, -92.58083505450213
 
-## Development
+## Troubleshooting
 
-### Testing Database Connection
-```bash
-cd Backend
-npm run test:db
-```
+### Database Connection Issues
+- Verify `MONGODB_URI` in environment variables
+- Check MongoDB Atlas network access settings
+- Ensure IP whitelist includes 0.0.0.0/0 for Vercel
 
-### Checking API Health
-```bash
-# Start server
-npm start
-
-# Visit http://localhost:3000/api/health
-```
-
-### Troubleshooting
-
-#### MongoDB Connection Issues
-- Verify `.env` file exists in `Backend/` directory
-- Check `MONGODB_URI` is correct
-- Ensure IP is whitelisted in MongoDB Atlas
-- Restart server after `.env` changes
-
-#### Google Maps Not Loading
-- Enable Maps JavaScript API in Google Cloud Console
-- Verify API key is correct
-- Check API key restrictions
-- Wait 2-5 minutes after enabling API
-
-#### Frontend Not Loading
-- Ensure backend server is running
+### Frontend Not Loading
 - Check browser console for errors
-- Verify all script files are loading correctly
+- Verify all script files are loading
+- Ensure backend server is running (for local development)
 
-## Security Notes
-
-- `.env` file is in `.gitignore` (never commit sensitive data)
-- API keys should be restricted in production
-- MongoDB connection string should be kept secure
-- Use environment variables for all sensitive configuration
+### API Errors
+- Check Vercel function logs
+- Verify environment variables are set
+- Test API endpoints directly
 
 ## Team
 
-**Developers:**
-- Pranaya Khadgi Shahi
-- Ali Musterih Addikebir
-
-**Business pitch:**
-- Mayowa Esan
-
-**Professor:**
-- Dr. Kafi Rahman (The Truman CS Department)
-
-**Institution:**
-- Truman State University
-- Computer Science Department
-
-## Links
-
-- **Live Demo**: [trumaninthevirtual.vercel.app](https://trumaninthevirtual.vercel.app)
-- **GitHub Repository**: [Truman-in-the-Virtual](https://github.com/pranayakhadgi/Truman-in-the-Virtual)
-- **Truman State University**: [www.truman.edu](https://www.truman.edu/)
-- **Visit Truman**: [Visit Scheduling](https://www.truman.edu/admission-cost/visit-truman/?q=/visit&)
-- **Apply Now**: [Application Portal](https://www.truman.edu/admission-cost/landing-pages/apply-source-mogo/)
+Developers: Pranaya Khadgi Shahi, Ali Musterih Addikebir  
+Professor: Dr. Kafi Rahman  
+Institution: Truman State University, Computer Science Department
 
 ## License
 
 MIT License
-
----
-
-**Last Updated:** January 2025  
-**Version:** 2.0.0  
-**Status:** Production Ready

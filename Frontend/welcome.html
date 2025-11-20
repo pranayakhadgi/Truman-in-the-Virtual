@@ -106,6 +106,11 @@
             background: linear-gradient(45deg, var(--truman-purple), var(--truman-gold));
             transition: all 0.3s ease;
             transform: translateY(0);
+            min-width: 250px;
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .start-button:hover {
@@ -170,6 +175,25 @@
         .content-overlay {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(2px);
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Ensure full width for main container */
+        .main-content-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Button container full width */
+        .button-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0 1rem;
         }
         
         /* Main title styling */
@@ -211,40 +235,49 @@
     
     <!-- Main Content -->
     <div class="content-overlay min-h-screen flex flex-col items-center justify-center text-white relative z-10">
-        <!-- Truman Logo -->
-        <div class="mb-8">
-            <img src="/public/logo/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto mx-auto">
-        </div>
-        
-        <!-- Main Title -->
-        <h1 class="text-6xl font-bold text-center mb-6 main-title">
-            Truman Virtual Tour
-        </h1>
-        
-        <!-- Quotation Section -->
-        <div class="max-w-4xl mx-auto text-center mb-8 px-4">
-            <div class="elegant-text mb-4">
-                "Experience Truman State University from anywhere in the world."
+        <!-- Main Content Container with Flexbox -->
+        <div class="main-content-container flex flex-col items-center justify-center w-full px-4 py-8">
+            <!-- Header Section with Flexbox -->
+            <div class="flex flex-col items-center justify-center mb-8 w-full">
+                <!-- Truman Logo -->
+                <div class="flex items-center justify-center mb-6 w-full">
+                    <img src="/public/logo/logo.svg" alt="Truman State University" class="truman-logo h-24 w-auto">
+                </div>
+                
+                <!-- Main Title -->
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-6 main-title w-full">
+                    Truman Virtual Tour
+                </h1>
+            </div>
+            
+            <!-- Content Section with Flexbox -->
+            <div class="flex flex-col items-center justify-center w-full mb-8">
+                <!-- Quotation Section -->
+                <div class="flex flex-col items-center justify-center w-full max-w-4xl mx-auto text-center mb-8 px-4">
+                    <div class="elegant-text mb-4 w-full">
+                        "Experience Truman State University from anywhere in the world."
+                    </div>
+                </div>
+                
+                <!-- Subtitle -->
+                <div class="flex items-center justify-center text-center mb-12 w-full">
+                    <p class="pixelated-text typewriter">
+                        Designed by the Computer Science students at Truman State :)
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action Section with Flexbox -->
+            <div class="button-container mb-8">
+                <button onclick="startTransition()" class="start-button text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg flex items-center justify-center">
+                    <i class="fas fa-play mr-2"></i>
+                    <span>Begin Your Journey</span>
+                </button>
             </div>
         </div>
         
-        <!-- Subtitle -->
-        <div class="text-center mb-12">
-            <p class="pixelated-text typewriter">
-                Designed by the Computer Science students at Truman State :)
-            </p>
-        </div>
-        
-        <!-- Start Button -->
-        <div class="text-center">
-            <button onclick="startTransition()" class="start-button text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg">
-                <i class="fas fa-play mr-2"></i>
-                Begin Your Journey
-            </button>
-        </div>
-        
-        <!-- Additional Info -->
-        <div class="absolute bottom-4 left-4 text-sm text-white/80">
+        <!-- Additional Info with Flexbox -->
+        <div class="absolute bottom-4 left-4 flex items-center justify-start text-sm text-white/80">
             <p>Use mouse to navigate • 3D Experience</p>
         </div>
     </div>
@@ -289,11 +322,13 @@
                 color: white;
             `;
             
-            // Add loading content to overlay
+            // Add loading content to overlay with flexbox
             overlay.innerHTML = `
-                <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto mb-8" style="opacity: 0.9;">
-                <div class="loading-spinner" style="width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffd700; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p class="mt-6 text-xl" style="font-family: 'Playfair Display', serif;">Preparing your virtual tour...</p>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;">
+                    <img src="/public/logo/logo.svg" alt="Truman" class="h-20 w-auto" style="opacity: 0.9;">
+                    <div class="loading-spinner" style="width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #ffd700; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p class="text-xl" style="font-family: 'Playfair Display', serif;">Preparing your virtual tour...</p>
+                </div>
             `;
             
             // Add spinner animation
@@ -314,9 +349,12 @@
             }, 10);
             
             // Redirect after smooth transition
-            // Always use backend route (Express server on port 3000)
+            // Use route that works with both dev server and backend server
             setTimeout(() => {
-                window.location.href = '/queries';
+                // Check if we're on dev server (port 8000) or backend server (port 3000)
+                const isDevServer = window.location.port === '8000' || window.location.hostname === 'localhost';
+                const queriesPath = isDevServer ? '/queries' : '/queries';
+                window.location.href = queriesPath;
             }, 1500);
         }
         

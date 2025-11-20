@@ -27,6 +27,11 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            min-height: 100vh;
         }
         
         /* Background slideshow (optional overlay) */
@@ -38,6 +43,15 @@
             height: 100%;
             background: linear-gradient(135deg, rgba(81, 12, 118, 0.1) 0%, rgba(122, 31, 179, 0.05) 100%);
             z-index: -1;
+        }
+        
+        #welcome-flow-root {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            flex: 1;
+            width: 100%;
         }
     </style>
 </head>

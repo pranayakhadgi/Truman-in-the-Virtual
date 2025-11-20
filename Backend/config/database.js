@@ -1,4 +1,17 @@
-// MongoDB Atlas Connection Configuration
+/**
+ * MongoDB Atlas Connection Configuration
+ * 
+ * This module handles the connection to MongoDB Atlas database.
+ * It includes:
+ * - Connection pooling and error handling
+ * - Environment-specific behavior (local vs Vercel serverless)
+ * - Automatic reconnection logic
+ * - Connection state management
+ * 
+ * The connection string is read from the MONGODB_URI environment variable,
+ * which should be set in the .env file for local development or in Vercel
+ * environment variables for production deployment.
+ */
 const mongoose = require('mongoose');
 const path = require('path');
 

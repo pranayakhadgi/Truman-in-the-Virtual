@@ -1,7 +1,17 @@
-// Vercel serverless function entry point
-// This exports the Express app as a serverless function handler
+/**
+ * Vercel Serverless Function Entry Point
+ * 
+ * This file serves as the entry point for Vercel serverless functions.
+ * When deployed to Vercel, all API routes (/api/*) are routed to this file,
+ * which then loads and exports the Express application from Backend/server.js.
+ * 
+ * The Express app handles all API endpoints and middleware configuration.
+ * This separation allows the same backend code to work in both local development
+ * (as a standalone server) and production (as serverless functions).
+ */
 
 // Set Vercel environment flag before requiring server
+// This allows Backend/server.js to detect it's running in Vercel environment
 process.env.VERCEL = '1';
 
 // Import the Express app with detailed error handling
