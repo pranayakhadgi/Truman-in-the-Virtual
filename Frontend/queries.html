@@ -37,14 +37,48 @@
             position: relative;
         }
 
+        /* Truman Logo - Top Left Brand Placement */
+        .truman-logo-header {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .truman-logo-header img {
+            height: 3.5rem;
+            width: auto;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .truman-logo-header img:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 640px) {
+            .truman-logo-header {
+                top: 1rem;
+                left: 1rem;
+            }
+            .truman-logo-header img {
+                height: 2.5rem;
+            }
+        }
+
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(81, 12, 118, 0.2);
+            border: 1px solid rgba(81, 12, 118, 0.1);
             max-width: 900px;
             width: 100%;
             padding: 3rem;
-            color: #333;
+            color: #510c76;
             display: flex;
             flex-direction: column;
             align-items: stretch;
@@ -83,13 +117,14 @@
         h1 {
             font-size: 2rem;
             margin-bottom: 0.5rem;
-            color: #1f2937;
+            color: #510c76;
             text-align: center;
+            font-weight: 700;
         }
 
         .subtext {
             text-align: center;
-            color: #6b7280;
+            color: rgba(81, 12, 118, 0.7);
             margin-bottom: 2rem;
             font-size: 1rem;
         }
@@ -112,11 +147,12 @@
 
         .option-card {
             padding: 1.5rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border: 2px solid rgba(81, 12, 118, 0.3);
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -132,31 +168,34 @@
         }
 
         .option-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            border-color: rgba(81, 12, 118, 0.6);
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(81, 12, 118, 0.3);
         }
 
         .option-card.selected {
-            border-color: #667eea;
-            background: #eef2ff;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border-color: rgba(81, 12, 118, 0.8);
+            background: rgba(81, 12, 118, 0.2);
+            box-shadow: 0 8px 24px rgba(81, 12, 118, 0.4);
         }
 
         .option-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            display: none; /* Remove emoji icons */
         }
 
         .option-label {
             font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
+            color: #510c76;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
         }
 
         .option-description {
             font-size: 0.875rem;
-            color: #6b7280;
+            color: rgba(81, 12, 118, 0.8);
+            line-height: 1.4;
         }
 
         .facilities-grid {
@@ -177,11 +216,12 @@
 
         .facility-card {
             padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border: 2px solid rgba(81, 12, 118, 0.3);
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -196,13 +236,16 @@
         }
 
         .facility-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
+            border-color: rgba(81, 12, 118, 0.6);
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(81, 12, 118, 0.3);
         }
 
         .facility-card.selected {
-            border-color: #667eea;
-            background: #eef2ff;
+            border-color: rgba(81, 12, 118, 0.8);
+            background: rgba(81, 12, 118, 0.2);
+            box-shadow: 0 8px 24px rgba(81, 12, 118, 0.4);
         }
 
         .facility-thumbnail {
@@ -255,7 +298,7 @@
         .btn {
             padding: 0.75rem 2rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -268,19 +311,21 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: linear-gradient(135deg, #510c76 0%, #7a1fb3 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(81, 12, 118, 0.3);
         }
 
         .btn-primary:hover:not(:disabled) {
-            background: #5568d3;
+            background: linear-gradient(135deg, #7a1fb3 0%, #510c76 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 20px rgba(81, 12, 118, 0.4);
         }
 
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background: rgba(81, 12, 118, 0.3);
         }
 
         .btn-secondary {
@@ -333,9 +378,48 @@
             font-size: 0.875rem;
             margin-bottom: 1rem;
         }
+
+        /* Survey Notice Footer */
+        .survey-notice {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(81, 12, 118, 0.2);
+            max-width: 600px;
+            width: calc(100% - 3rem);
+            box-shadow: 0 4px 12px rgba(81, 12, 118, 0.2);
+        }
+
+        .survey-notice p {
+            margin: 0;
+            color: rgba(81, 12, 118, 0.9);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+            .survey-notice {
+                bottom: 1rem;
+                padding: 0.625rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Truman Logo - Top Left Brand Placement -->
+    <div class="truman-logo-header">
+        <img src="/public/logo/logo.svg" alt="Truman State University" />
+    </div>
+
     <div class="container">
         <!-- Step Indicator -->
         <div class="step-indicator" id="stepIndicator"></div>
@@ -347,6 +431,11 @@
                 <p>Initializing your personalized experience...</p>
             </div>
         </div>
+    </div>
+
+    <!-- Survey Notice Footer -->
+    <div class="survey-notice">
+        <p>This brief survey helps Truman State University collect valuable insights and statistics to enhance our virtual tour experience and better serve our community.</p>
     </div>
 
     <!-- Load Configuration Files -->
@@ -452,9 +541,20 @@
             const isMultiSelect = stepConfig.type === 'multi-select';
             const selectedValues = isMultiSelect ? (appState.formData[stepConfig.id] || []) : appState.formData[stepConfig.id];
 
+            // Get dynamic question and subtext based on user type
+            let questionText = stepConfig.question;
+            let subtextText = stepConfig.subtext;
+            
+            if (stepConfig.getQuestion && typeof stepConfig.getQuestion === 'function') {
+                questionText = stepConfig.getQuestion(appState.formData);
+            }
+            if (stepConfig.getSubtext && typeof stepConfig.getSubtext === 'function') {
+                subtextText = stepConfig.getSubtext(appState.formData);
+            }
+
             let html = `
-                <h1>${stepConfig.question}</h1>
-                ${stepConfig.subtext ? `<p class="subtext">${stepConfig.subtext}</p>` : ''}
+                <h1>${questionText}</h1>
+                ${subtextText ? `<p class="subtext">${subtextText}</p>` : ''}
                 <div class="options-grid">
             `;
 
@@ -469,7 +569,6 @@
                          onclick="selectOption('${option.value}', ${stepConfig.id === 'facilities'}); return false;"
                          onmousedown="event.preventDefault();"
                          style="pointer-events: auto; cursor: pointer;">
-                        <div class="option-icon">${option.icon || '📌'}</div>
                         <div class="option-label">${option.label}</div>
                         ${option.description ? `<div class="option-description">${option.description}</div>` : ''}
                     </div>

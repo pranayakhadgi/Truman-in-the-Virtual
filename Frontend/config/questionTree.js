@@ -27,14 +27,14 @@ const questionTree = {
         label: 'Current Student',
         icon: '📚',
         description: 'I attend Truman',
-        nextStep: 3 // Skip interest question
+        nextStep: 2 // Show interest question
       },
       {
         value: 'alumni',
         label: 'Alumni',
         icon: '🎉',
         description: 'I graduated from Truman',
-        nextStep: 3 // Skip interest question
+        nextStep: 2 // Show interest question
       },
       {
         value: 'visitor',
@@ -48,12 +48,37 @@ const questionTree = {
   
   2: {
     id: 'interest',
-    question: 'What are you interested in?',
+    question: 'What are you interested in?', // Will be dynamically updated based on userType
     subtext: 'Select your primary area of interest',
     type: 'single-select',
     required: true,
     showWhen: (formData) => {
-      return ['prospective_student', 'parent'].includes(formData.userType);
+      return ['prospective_student', 'parent', 'current_student', 'alumni'].includes(formData.userType);
+    },
+    getQuestion: (formData) => {
+      // Dynamic question based on user type
+      if (formData.userType === 'prospective_student') {
+        return 'What would you like to study?';
+      } else if (formData.userType === 'parent') {
+        return 'What would your child like to study?';
+      } else if (formData.userType === 'current_student') {
+        return 'What major are you?';
+      } else if (formData.userType === 'alumni') {
+        return 'What did you major in during your undergraduate studies?';
+      }
+      return 'What are you interested in?';
+    },
+    getSubtext: (formData) => {
+      if (formData.userType === 'prospective_student') {
+        return 'Help us personalize your virtual tour experience by selecting your area of interest';
+      } else if (formData.userType === 'parent') {
+        return 'Select the academic area your child is most interested in exploring';
+      } else if (formData.userType === 'current_student') {
+        return 'Select your current major or area of study';
+      } else if (formData.userType === 'alumni') {
+        return 'Select the major you completed during your time at Truman';
+      }
+      return 'Select your primary area of interest';
     },
     options: [
       {
