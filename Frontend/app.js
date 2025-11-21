@@ -388,7 +388,7 @@ function App() {
             }
             
             // Also ensure root container has proper pointer events
-            const rootElement = document.getElementById('root');
+            // rootElement is already defined above, just use it
             if (rootElement) {
               rootElement.style.pointerEvents = 'auto';
               rootElement.style.zIndex = '1';

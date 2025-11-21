@@ -106,21 +106,40 @@
   <script type="text/babel" src="/Frontend/components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
   
   <!-- Your React App - loads after components -->
-  <script type="text/babel" src="/Frontend/app.js" onload="console.log('✅ app.js loaded')" onerror="console.error('❌ Failed to load app.js')"></script>
+  <!-- Ensure app.js loads and initializes properly -->
+  <script type="text/babel" src="/Frontend/app.js" 
+    onload="console.log('✅ app.js loaded'); if (typeof waitForComponents === 'function') { console.log('✅ waitForComponents function available'); } else { console.warn('⚠️ waitForComponents not found in app.js'); }" 
+    onerror="console.error('❌ Failed to load app.js'); const errorDiv = document.createElement('div'); errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,0,0,0.9); color: white; padding: 15px; border-radius: 8px; z-index: 10001;'; errorDiv.innerHTML = '<strong>⚠️ Failed to load app.js</strong><br>Check console for details'; document.body.appendChild(errorDiv);"></script>
   
-  <!-- Verify all scripts loaded -->
+  <!-- Verify all scripts loaded and ensure app.js connection -->
   <script>
-    // Wait for all scripts to load, then verify
+    // Wait for all scripts to load, then verify connection
     window.addEventListener('load', function() {
       console.log('✅ All scripts loaded');
       console.log('Skybox configs available:', !!window.skyboxConfigs);
       console.log('SkyboxScene available:', !!window.SkyboxScene);
       console.log('App component ready');
+      console.log('waitForComponents function available:', typeof waitForComponents === 'function');
       
       // Check if React root was created
       const root = document.getElementById('root');
-      if (root && root.children.length === 0) {
-        console.warn('⚠️ React root is empty - app may not have rendered');
+      if (root) {
+        console.log('✅ Root element found:', root);
+        console.log('Root element children count:', root.children.length);
+        console.log('Root element has React root:', !!root._reactRootContainer);
+        
+        if (root.children.length === 0 && !root._reactRootContainer) {
+          console.warn('⚠️ React root is empty and no React root container found - app may not have rendered');
+          // If app.js didn't initialize, try to trigger it manually
+          if (typeof waitForComponents === 'function') {
+            console.log('🔄 Manually triggering waitForComponents...');
+            waitForComponents();
+          }
+        } else if (root._reactRootContainer) {
+          console.log('✅ React root container exists');
+        }
+      } else {
+        console.error('❌ Root element not found in DOM!');
       }
     });
   </script>
