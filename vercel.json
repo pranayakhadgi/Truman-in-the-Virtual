@@ -48,7 +48,7 @@
       ]
     },
     {
-      "source": "/Frontend/(.*\\.(js|jsx|mjs))",
+      "source": "/Frontend/.*\\.(js|jsx|mjs)$",
       "headers": [
         {
           "key": "Content-Type",
