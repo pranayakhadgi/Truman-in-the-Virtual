@@ -832,7 +832,23 @@ function SkyboxScene() {
     }
   }, [currentSkybox, isTransitioning]);
 
-  return <div ref={mountRef} className="absolute inset-0" />;
+  return (
+    <div 
+      ref={mountRef} 
+      className="absolute inset-0" 
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        pointerEvents: 'auto',
+        zIndex: 10,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }} 
+    />
+  );
 }
 
 // Make available globally - ensure it's set immediately
