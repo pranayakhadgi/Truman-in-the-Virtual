@@ -46,9 +46,13 @@ function SkyboxScene() {
       );
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      // Ensure canvas doesn't block pointer events for UI elements
+      // Ensure canvas receives pointer events for camera controls and annotations
       renderer.domElement.style.pointerEvents = 'auto';
-      renderer.domElement.style.zIndex = '1';
+      renderer.domElement.style.zIndex = '10';
+      renderer.domElement.style.position = 'relative';
+      renderer.domElement.style.width = '100%';
+      renderer.domElement.style.height = '100%';
+      renderer.domElement.style.touchAction = 'none'; // Prevent touch scrolling
       mountRef.current.appendChild(renderer.domElement);
 
       // Hide global loading indicator if present
@@ -63,6 +67,14 @@ function SkyboxScene() {
       controls.dampingFactor = 0.25;
       controls.autoRotate = true; // Enable auto rotation
       controls.autoRotateSpeed = 1.0; // Rotation speed (1.0 = moderate speed)
+      controls.enablePan = true;
+      controls.enableZoom = true;
+      controls.enableRotate = true;
+      controls.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN
+      };
 
       // Skybox configuration (from constants)
       const SKYBOX_RADIUS = window.SKYBOX_RADIUS || 500;
@@ -78,34 +90,52 @@ function SkyboxScene() {
       skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       scene.add(skyboxMesh);
       
-      // Load skybox textures
+      // Load skybox textures with WebP fallback to JPG
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
         console.log('Loading skybox:', config.name);
         console.log('Image paths:', config.images);
         
-        // Use paths as-is (browser will handle URL encoding automatically)
-        const imagePaths = config.images;
+        // Try WebP first, fallback to JPG if WebP fails
+        const imagePaths = config.images.map(path => {
+          // If path is WebP, try it first, but prepare JPG fallback
+          if (path.endsWith('.webp')) {
+            return path;
+          }
+          return path;
+        });
         
         console.log('Image paths to load:', imagePaths);
         
-        return loader.load(
-          imagePaths, 
-          (texture) => {
-            console.log('✅ Skybox texture loaded successfully');
-            if (onLoad) onLoad(texture);
-          }, 
-          (progress) => {
-            if (progress && progress.total) {
-              console.log('Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
+        // Load with error handling and fallback
+        const loadWithFallback = (paths, attempt = 0) => {
+          return loader.load(
+            paths,
+            (texture) => {
+              console.log('✅ Skybox texture loaded successfully');
+              if (onLoad) onLoad(texture);
+            }, 
+            (progress) => {
+              if (progress && progress.total) {
+                console.log('Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
+              }
+            },
+            (error) => {
+              console.warn('⚠️ Failed to load WebP images, trying JPG fallback:', error);
+              // Fallback to JPG if WebP fails
+              if (attempt === 0 && paths.some(p => p.endsWith('.webp'))) {
+                const jpgPaths = paths.map(p => p.replace('.webp', '.jpg'));
+                console.log('Trying JPG fallback:', jpgPaths);
+                return loadWithFallback(jpgPaths, 1);
+              }
+              console.error('❌ Failed to load skybox images:', error);
+              console.error('Failed paths:', paths);
+              if (onError) onError(error);
             }
-          },
-          (error) => {
-            console.error('❌ Failed to load skybox images:', error);
-            console.error('Failed paths:', imagePaths);
-            if (onError) onError(error);
-          }
-        );
+          );
+        };
+        
+        return loadWithFallback(imagePaths);
       };
       
       let currentTexture = loadSkybox(
@@ -145,6 +175,9 @@ function SkyboxScene() {
           skyboxMesh.material = shaderMaterial;
           skyboxMaterial = shaderMaterial;
           currentTexture = texture;
+          
+          // Create annotations after skybox loads
+          createAnnotationMarkers();
         },
         (error) => {
           console.error('❌ Failed to load initial skybox:', skyboxConfigs[currentSkybox].name);
@@ -190,67 +223,50 @@ function SkyboxScene() {
       let isHovering = false;
       let hoveredAnnotation = null;
       
-      // Annotations configuration
+      // Annotations configuration - 6 directions (posx, negx, posy, negy, posz, negz)
+      // Using normalized directions for all 6 cardinal directions
       const annotations = [
         {
-          originalPosition: new THREE.Vector3(1.27, 0.53, -4.81),
-          title: "The Blue House",
-          description: "A charming blue house located in the Truman campus area. This building represents the residential life at Truman State University.",
+          originalPosition: new THREE.Vector3(1, 0, 0), // +X (Right/East)
+          title: "East View",
+          description: "Looking east across the Truman State University campus. Explore the eastern side of campus with its beautiful architecture and green spaces.",
           visible: true,
-          cameraTarget: new THREE.Vector3(1.99, 0.43, -4.57).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(1.99, 0.43, -2.57),
-          fov: 60,
           color: "#3b82f6"
         },
         {
-          originalPosition: new THREE.Vector3(-45.6, -4.3, 20.5),
-          title: "The Red House",
-          description: "A beautiful red house that adds character to the campus landscape. This building showcases Truman's diverse architectural styles.",
+          originalPosition: new THREE.Vector3(-1, 0, 0), // -X (Left/West)
+          title: "West View",
+          description: "Looking west across the Truman State University campus. Discover the western side of campus and its scenic views.",
           visible: true,
-          cameraTarget: new THREE.Vector3(-45.6, -4.3, 20.5).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(-4.56, -0.43, 0.05),
-          fov: 60,
           color: "#ef4444"
         },
         {
-          originalPosition: new THREE.Vector3(7.3, 1.6, -49.4),
-          title: "The Right Goal Post",
-          description: "Part of Truman's athletic facilities, this goal post represents the university's commitment to sports and student activities.",
+          originalPosition: new THREE.Vector3(0, 1, 0), // +Y (Up)
+          title: "Sky View",
+          description: "Looking up at the sky above Truman State University. Enjoy the beautiful Missouri sky and campus atmosphere.",
           visible: true,
-          cameraTarget: new THREE.Vector3(7.3, 1.6, -49.4).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(0.73, 0.16, -2.94),
-          fov: 60,
-          color: "#f59e0b"
-        },
-        {
-          originalPosition: new THREE.Vector3(49.9, -1.0, 2.4),
-          title: "The Red Barn",
-          description: "A historic red barn that adds rustic charm to the campus. This structure represents Truman's connection to its agricultural heritage.",
-          visible: true,
-          cameraTarget: new THREE.Vector3(49.9, -1.0, 2.4).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(2.99, -0.10, 0.24),
-          fov: 60,
-          color: "#dc2626"
-        },
-        {
-          originalPosition: new THREE.Vector3(2.7, -1.3, 49.9),
-          title: "The Left Goal Post",
-          description: "The left goal post of Truman's football field, symbolizing the university's athletic spirit and school pride.",
-          visible: true,
-          cameraTarget: new THREE.Vector3(2.7, -1.3, 49.9).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(0.27, -0.13, 2.99),
-          fov: 60,
-          color: "#f59e0b"
-        },
-        {
-          originalPosition: new THREE.Vector3(-46.5, 17.8, -4.9),
-          title: "The Football Field",
-          description: "Truman's main football field where Bulldogs play. This is the heart of Truman's athletic program and school spirit.",
-          visible: true,
-          cameraTarget: new THREE.Vector3(-46.5, 17.8, -4.9).normalize().multiplyScalar(SKYBOX_RADIUS),
-          cameraPosition: new THREE.Vector3(-2.65, 1.78, -0.49),
-          fov: 60,
           color: "#10b981"
+        },
+        {
+          originalPosition: new THREE.Vector3(0, -1, 0), // -Y (Down)
+          title: "Ground View",
+          description: "Looking down at the ground of Truman State University. Explore the campus grounds and pathways.",
+          visible: true,
+          color: "#f59e0b"
+        },
+        {
+          originalPosition: new THREE.Vector3(0, 0, 1), // +Z (Forward/North)
+          title: "North View",
+          description: "Looking north across the Truman State University campus. Experience the northern side of campus with its historic buildings.",
+          visible: true,
+          color: "#8b5cf6"
+        },
+        {
+          originalPosition: new THREE.Vector3(0, 0, -1), // -Z (Backward/South)
+          title: "South View",
+          description: "Looking south across the Truman State University campus. Discover the southern side of campus and its modern facilities.",
+          visible: true,
+          color: "#ec4899"
         }
       ];
       
@@ -258,8 +274,11 @@ function SkyboxScene() {
       const ANNOTATION_OFFSET = window.ANNOTATION_OFFSET || 2;
       annotations.forEach(annotation => {
         if (annotation.originalPosition) {
+          // Normalize the direction vector
           annotation.direction = annotation.originalPosition.clone().normalize();
+          // Position on sphere surface (slightly inside to avoid z-fighting)
           annotation.position = annotation.direction.clone().multiplyScalar(SKYBOX_RADIUS - ANNOTATION_OFFSET);
+          console.log(`Annotation "${annotation.title}" positioned at:`, annotation.position);
         }
       });
         
@@ -354,34 +373,61 @@ function SkyboxScene() {
       };
       
       const createAnnotationMarkers = () => {
+        // Clear any existing sprites
+        annotationSprites.forEach(sprite => {
+          scene.remove(sprite);
+          if (sprite.material) {
+            sprite.material.map?.dispose();
+            sprite.material.dispose();
+          }
+        });
+        annotationSprites = [];
+        
         annotations.forEach((annotation, index) => {
           const position = annotation.position;
           
-          const size = 64;
+          // Create dotted marker (circle with dots pattern)
+          const size = 128;
           const canvas = document.createElement('canvas');
           canvas.width = size;
           canvas.height = size;
           const ctx = canvas.getContext('2d');
-          const radius = 12;
           
           ctx.clearRect(0, 0, size, size);
           
+          // Outer ring (dotted pattern)
+          const outerRadius = 20;
+          const dotCount = 16;
+          ctx.strokeStyle = annotation.color;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([4, 4]); // Dotted line
           ctx.beginPath();
-          ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.fill();
+          ctx.arc(size / 2, size / 2, outerRadius, 0, Math.PI * 2);
+          ctx.stroke();
           
+          // Inner filled circle
+          ctx.setLineDash([]); // Solid line
           ctx.beginPath();
-          ctx.arc(size / 2, size / 2, radius - 3, 0, Math.PI * 2);
+          ctx.arc(size / 2, size / 2, 12, 0, Math.PI * 2);
           ctx.fillStyle = annotation.color;
           ctx.fill();
           
+          // Center dot
           ctx.beginPath();
-          ctx.arc(size / 2, size / 2, 3, 0, Math.PI * 2);
+          ctx.arc(size / 2, size / 2, 4, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
           ctx.fill();
           
+          // Pulsing glow effect
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = annotation.color;
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, 8, 0, Math.PI * 2);
+          ctx.fillStyle = annotation.color;
+          ctx.fill();
+          
           const texture = new THREE.CanvasTexture(canvas);
+          texture.needsUpdate = true;
           
           const material = new THREE.SpriteMaterial({ 
             map: texture, 
@@ -392,12 +438,14 @@ function SkyboxScene() {
           });
           const sprite = new THREE.Sprite(material);
           sprite.position.copy(position);
-          sprite.scale.set(3.0, 3.0, 1);
+          sprite.scale.set(4.0, 4.0, 1); // Slightly larger for better visibility
           sprite.renderOrder = 999;
           sprite.userData = { annotationIndex: index, annotation: annotation };
           scene.add(sprite);
           annotationSprites.push(sprite);
         });
+        
+        console.log(`✅ Created ${annotationSprites.length} annotation markers in 6 directions`);
       };
       
       const onAnnotationHover = (sprite, hovering) => {
@@ -414,6 +462,8 @@ function SkyboxScene() {
           const annotationOverlay = document.getElementById('annotationMessage');
           if (annotationOverlay) {
             annotationOverlay.textContent = annotation.title;
+            annotationOverlay.style.display = 'block';
+            annotationOverlay.style.opacity = '1';
             annotationOverlay.classList.add('show');
           }
         } else {
@@ -424,13 +474,21 @@ function SkyboxScene() {
           
           const annotationOverlay = document.getElementById('annotationMessage');
           if (annotationOverlay) {
+            annotationOverlay.style.opacity = '0';
             annotationOverlay.classList.remove('show');
+            setTimeout(() => {
+              if (annotationOverlay.style.opacity === '0') {
+                annotationOverlay.style.display = 'none';
+              }
+            }, 300);
           }
         }
       };
       
       const onAnnotationClick = (sprite) => {
-        showDialogBox(sprite.userData.annotation);
+        const annotation = sprite.userData.annotation;
+        console.log('✅ Annotation clicked:', annotation.title);
+        showDialogBox(annotation);
         
         if (!sprite) return;
         const originalScale = 2.5;
@@ -550,16 +608,39 @@ function SkyboxScene() {
       };
       
       const onMouseClick = (event) => {
-        if (hoveredAnnotation && hoveredAnnotation.scale) {
-          if (isHovering) onAnnotationClick(hoveredAnnotation);
+        if (!raycaster || !mouse) return;
+        
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        
+        if (annotationSprites.length > 0) {
+          const intersects = raycaster.intersectObjects(annotationSprites, true);
+          if (intersects.length > 0) {
+            const clickedSprite = intersects[0].object;
+            onAnnotationClick(clickedSprite);
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+        }
+        
+        // If clicked on annotation that was hovered
+        if (hoveredAnnotation) {
+          onAnnotationClick(hoveredAnnotation);
+          event.preventDefault();
+          event.stopPropagation();
         }
       };
       
-      // Initialize raycaster, mouse, and create markers
+      // Initialize raycaster and mouse
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
-      createAnnotationMarkers();
       
+      // Annotations will be created after skybox loads (in loadSkybox callback)
+      // But we can set up event listeners now
       renderer.domElement.addEventListener('mousemove', onMouseMove);
       renderer.domElement.addEventListener('click', onMouseClick);
 
@@ -567,6 +648,16 @@ function SkyboxScene() {
       const transitionToSkybox = (skyboxIndex) => {
         console.log(`Transitioning to skybox ${skyboxIndex}: ${skyboxConfigs[skyboxIndex].name}`);
         setIsTransitioning(true);
+        
+        // Clear existing annotations during transition
+        annotationSprites.forEach(sprite => {
+          scene.remove(sprite);
+          if (sprite.material) {
+            sprite.material.map?.dispose();
+            sprite.material.dispose();
+          }
+        });
+        annotationSprites = [];
         setCurrentSkybox(skyboxIndex);
         const newConfig = skyboxConfigs[skyboxIndex];
         
@@ -628,6 +719,9 @@ function SkyboxScene() {
                         }
                       }
                       currentTexture = newTexture;
+                      
+                      // Recreate annotations for new skybox
+                      createAnnotationMarkers();
                       
                       const fadeOutInterval = setInterval(() => {
                         fadeMaterial.opacity -= 0.08;

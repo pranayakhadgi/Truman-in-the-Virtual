@@ -296,7 +296,11 @@ function App() {
         alignItems: 'center', 
         justifyContent: 'center', 
         position: 'relative',
-        pointerEvents: 'auto' // Scene needs pointer events for camera controls
+        pointerEvents: 'auto', // Scene needs pointer events for camera controls
+        zIndex: 10,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden'
       }}>
         {SkyboxScene && <SkyboxScene />}
       </div>
@@ -357,15 +361,16 @@ function App() {
             root.render(React.createElement(App));
             console.log('✅ React app rendered successfully');
             
-            // Remove transition overlay now that app is rendered
-            setTimeout(() => {
-              const overlay = document.getElementById('transition-overlay');
-              if (overlay) {
-                overlay.style.pointerEvents = 'none';
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 1000);
-              }
-            }, 500);
+            // Remove transition overlay immediately to allow interactions
+            const overlay = document.getElementById('transition-overlay');
+            if (overlay) {
+              overlay.style.pointerEvents = 'none';
+              overlay.style.opacity = '0';
+              setTimeout(() => {
+                overlay.remove();
+                console.log('✅ Transition overlay removed - interactions enabled');
+              }, 1000);
+            }
             
             // Verify render worked
             setTimeout(() => {

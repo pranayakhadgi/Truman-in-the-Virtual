@@ -70,6 +70,9 @@
     <p class="text-xl" style="font-family: 'Playfair Display', serif;">Loading 3D environment...</p>
   </div>
   
+  <!-- Annotation Message Overlay -->
+  <div id="annotationMessage" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; display: none;"></div>
+  
   <div id="root" class="h-screen w-full flex flex-col items-stretch justify-start overflow-hidden"></div>
   
   <!-- Map Container (hidden by default) -->
