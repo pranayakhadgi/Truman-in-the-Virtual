@@ -355,8 +355,20 @@ function App() {
         console.log('✅ All React components loaded, rendering app...');
         const rootElement = document.getElementById("root");
         if (rootElement) {
+          // Check if root already has a React root instance
+          if (rootElement._reactRootContainer) {
+            console.warn('⚠️ React root already exists, skipping creation');
+            return;
+          }
+          
+          // Clear any existing content
+          rootElement.innerHTML = '';
+          
           try {
             const root = ReactDOM.createRoot(rootElement);
+            // Store reference to prevent duplicate creation
+            rootElement._reactRootContainer = root;
+            
             // Use React.createElement to ensure components are properly referenced
             root.render(React.createElement(App));
             console.log('✅ React app rendered successfully');
@@ -393,12 +405,40 @@ function App() {
           } catch (error) {
             console.error('❌ Error rendering React app:', error);
             console.error('Error stack:', error.stack);
+            console.error('Root element:', rootElement);
+            console.error('Root element children:', rootElement?.children.length);
+            console.error('Root element innerHTML length:', rootElement?.innerHTML?.length);
             
-            // Show error to user
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; z-index: 10001; max-width: 600px; text-align: center;';
-            errorDiv.innerHTML = '<h2>⚠️ Rendering Error</h2><p>' + error.message + '</p><p><small>Check console for details</small></p>';
-            document.body.appendChild(errorDiv);
+            // Try to clear and retry once
+            if (rootElement && !rootElement._retryAttempted) {
+              console.log('🔄 Attempting to clear root and retry...');
+              rootElement.innerHTML = '';
+              rootElement._retryAttempted = true;
+              delete rootElement._reactRootContainer;
+              
+              // Retry after a short delay
+              setTimeout(() => {
+                try {
+                  const retryRoot = ReactDOM.createRoot(rootElement);
+                  rootElement._reactRootContainer = retryRoot;
+                  retryRoot.render(React.createElement(App));
+                  console.log('✅ React app rendered successfully on retry');
+                } catch (retryError) {
+                  console.error('❌ Retry also failed:', retryError);
+                  // Show error to user
+                  const errorDiv = document.createElement('div');
+                  errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; z-index: 10001; max-width: 600px; text-align: center;';
+                  errorDiv.innerHTML = '<h2>⚠️ Rendering Error</h2><p>' + error.message + '</p><p><small>Check console for details. Try refreshing the page.</small></p>';
+                  document.body.appendChild(errorDiv);
+                }
+              }, 100);
+            } else {
+              // Show error to user
+              const errorDiv = document.createElement('div');
+              errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 10px; z-index: 10001; max-width: 600px; text-align: center;';
+              errorDiv.innerHTML = '<h2>⚠️ Rendering Error</h2><p>' + error.message + '</p><p><small>Check console for details. Try refreshing the page.</small></p>';
+              document.body.appendChild(errorDiv);
+            }
           }
         } else {
           console.error('❌ Root element not found!');
