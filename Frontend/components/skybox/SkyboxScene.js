@@ -96,16 +96,12 @@ function SkyboxScene() {
       skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       scene.add(skyboxMesh);
       
-      // Load skybox textures - using JPG format for reliable loading
+      // Load skybox textures
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
         console.log('Loading skybox:', config.name);
-        console.log('Image paths:', config.images);
         
-        // Use image paths as-is (should be JPG now)
         const imagePaths = config.images;
-        
-        console.log('Image paths to load:', imagePaths);
         
         return loader.load(
           imagePaths,

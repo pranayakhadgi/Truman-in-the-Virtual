@@ -2,9 +2,8 @@
 
 // Google Maps Configuration
 const GOOGLE_MAPS_CONFIG = {
-  // API Key - Replace with your actual key or use environment variable
-  // For now, using a placeholder - you'll need to add your actual API key
-  apiKey: 'your api key here', // This is from Ali's code - replace with your own
+  // API Key - matches the key in index.html
+  apiKey: 'AIzaSyBoxO3KA_9_gIOE0j1gKhI16vhbAfi35qw',
   
   // Truman State University Campus Center
   campusCenter: {
