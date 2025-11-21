@@ -471,8 +471,20 @@ function App() {
     }
   }
   
-  // Start waiting for components
-  waitForComponents();
+  // Make waitForComponents available globally for debugging
+  window.waitForComponents = waitForComponents;
+  
+  // Start waiting for components - ensure this runs after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('✅ DOM loaded, starting component wait...');
+      waitForComponents();
+    });
+  } else {
+    // DOM already loaded, start immediately but give Babel time to transpile
+    console.log('✅ DOM already loaded, starting component wait...');
+    setTimeout(() => waitForComponents(), 100);
+  }
 
 // Smooth fade-out of transition overlay once 3D scene is ready
 // This ensures the overlay doesn't block UI interactions
