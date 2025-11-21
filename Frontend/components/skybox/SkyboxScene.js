@@ -90,52 +90,34 @@ function SkyboxScene() {
       skyboxMesh = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       scene.add(skyboxMesh);
       
-      // Load skybox textures with WebP fallback to JPG
+      // Load skybox textures - using JPG format for reliable loading
       const loader = new THREE.CubeTextureLoader();
       const loadSkybox = (config, onLoad, onError) => {
         console.log('Loading skybox:', config.name);
         console.log('Image paths:', config.images);
         
-        // Try WebP first, fallback to JPG if WebP fails
-        const imagePaths = config.images.map(path => {
-          // If path is WebP, try it first, but prepare JPG fallback
-          if (path.endsWith('.webp')) {
-            return path;
-          }
-          return path;
-        });
+        // Use image paths as-is (should be JPG now)
+        const imagePaths = config.images;
         
         console.log('Image paths to load:', imagePaths);
         
-        // Load with error handling and fallback
-        const loadWithFallback = (paths, attempt = 0) => {
-          return loader.load(
-            paths,
-            (texture) => {
-              console.log('✅ Skybox texture loaded successfully');
-              if (onLoad) onLoad(texture);
-            }, 
-            (progress) => {
-              if (progress && progress.total) {
-                console.log('Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
-              }
-            },
-            (error) => {
-              console.warn('⚠️ Failed to load WebP images, trying JPG fallback:', error);
-              // Fallback to JPG if WebP fails
-              if (attempt === 0 && paths.some(p => p.endsWith('.webp'))) {
-                const jpgPaths = paths.map(p => p.replace('.webp', '.jpg'));
-                console.log('Trying JPG fallback:', jpgPaths);
-                return loadWithFallback(jpgPaths, 1);
-              }
-              console.error('❌ Failed to load skybox images:', error);
-              console.error('Failed paths:', paths);
-              if (onError) onError(error);
+        return loader.load(
+          imagePaths,
+          (texture) => {
+            console.log('✅ Skybox texture loaded successfully');
+            if (onLoad) onLoad(texture);
+          }, 
+          (progress) => {
+            if (progress && progress.total) {
+              console.log('Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
             }
-          );
-        };
-        
-        return loadWithFallback(imagePaths);
+          },
+          (error) => {
+            console.error('❌ Failed to load skybox images:', error);
+            console.error('Failed paths:', imagePaths);
+            if (onError) onError(error);
+          }
+        );
       };
       
       let currentTexture = loadSkybox(

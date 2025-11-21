@@ -99,7 +99,8 @@
   
   <!-- Load skybox components - must load before app.js -->
   <!-- Using Babel mode (original architecture) for reliable deployment -->
-  <script type="text/babel" src="/Frontend/components/skybox/constants.js" onload="console.log('✅ constants.js loaded')" onerror="console.error('❌ Failed to load constants.js')"></script>
+  <!-- Load constants.js as regular script (no Babel) to avoid exports issue -->
+  <script src="/Frontend/components/skybox/constants.js" onload="console.log('✅ constants.js loaded'); console.log('skyboxConfigs available:', !!window.skyboxConfigs);" onerror="console.error('❌ Failed to load constants.js')"></script>
   <script type="text/babel" src="/Frontend/components/skybox/SkyboxScene.js" onload="console.log('✅ SkyboxScene.js loaded')" onerror="console.error('❌ Failed to load SkyboxScene.js')"></script>
   <script type="text/babel" src="/Frontend/components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
   
