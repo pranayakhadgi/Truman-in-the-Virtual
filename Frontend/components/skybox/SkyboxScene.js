@@ -65,8 +65,8 @@ function SkyboxScene() {
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.25;
-      controls.autoRotate = true; // Enable auto rotation
-      controls.autoRotateSpeed = 1.0; // Rotation speed (1.0 = moderate speed)
+      controls.autoRotate = false; // Disable auto rotation for better user control
+      controls.autoRotateSpeed = 1.0;
       controls.enablePan = true;
       controls.enableZoom = true;
       controls.enableRotate = true;
@@ -75,6 +75,12 @@ function SkyboxScene() {
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.PAN
       };
+      
+      // Ensure controls are active
+      controls.update();
+      
+      // Log to verify controls are working
+      console.log('✅ OrbitControls initialized and active');
 
       // Skybox configuration (from constants)
       const SKYBOX_RADIUS = window.SKYBOX_RADIUS || 500;
@@ -623,8 +629,17 @@ function SkyboxScene() {
       
       // Annotations will be created after skybox loads (in loadSkybox callback)
       // But we can set up event listeners now
-      renderer.domElement.addEventListener('mousemove', onMouseMove);
-      renderer.domElement.addEventListener('click', onMouseClick);
+      renderer.domElement.addEventListener('mousemove', onMouseMove, { passive: false });
+      renderer.domElement.addEventListener('click', onMouseClick, { passive: false });
+      renderer.domElement.addEventListener('mousedown', (e) => {
+        console.log('✅ Mouse down on canvas');
+      }, { passive: false });
+      
+      // Ensure canvas is interactive
+      renderer.domElement.setAttribute('tabindex', '0');
+      renderer.domElement.style.outline = 'none';
+      
+      console.log('✅ Event listeners attached to renderer canvas');
 
       // Skybox transition function
       const transitionToSkybox = (skyboxIndex) => {

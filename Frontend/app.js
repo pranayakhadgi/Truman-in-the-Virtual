@@ -364,12 +364,22 @@ function App() {
             // Remove transition overlay immediately to allow interactions
             const overlay = document.getElementById('transition-overlay');
             if (overlay) {
+              // Immediately disable pointer events
               overlay.style.pointerEvents = 'none';
+              overlay.style.zIndex = '-1'; // Move behind everything
               overlay.style.opacity = '0';
+              // Remove from DOM quickly
               setTimeout(() => {
                 overlay.remove();
                 console.log('✅ Transition overlay removed - interactions enabled');
-              }, 1000);
+              }, 500);
+            }
+            
+            // Also ensure root container has proper pointer events
+            const rootElement = document.getElementById('root');
+            if (rootElement) {
+              rootElement.style.pointerEvents = 'auto';
+              rootElement.style.zIndex = '1';
             }
             
             // Verify render worked
