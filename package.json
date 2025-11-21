@@ -11,8 +11,6 @@
     "frontend": "cd Frontend && python3 -m http.server 8000",
     "backend": "cd Backend && npm start",
     "build": "vite build",
-    "build:optimize": "node scripts/optimize-images.js && vite build",
-    "optimize-images": "node scripts/optimize-images.js",
     "preview": "vite preview",
     "update-readme": "python3 update_readme.py"
   },
