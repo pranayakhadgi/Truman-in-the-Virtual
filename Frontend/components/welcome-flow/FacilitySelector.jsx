@@ -119,7 +119,7 @@ const FacilitySelector = ({
                   alt={facility.name}
                   className="w-full h-32 object-cover rounded-lg"
                   onError={(e) => {
-                    e.target.src = '/public/images/truman_clocktower.jpg';
+                    e.target.src = '/public/images/truman_clocktower.webp';
                   }}
                 />
                 {isSelected && (

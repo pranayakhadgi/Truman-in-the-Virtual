@@ -40,7 +40,7 @@
     .pixelated-rotate {
       width: 32px;
       height: 32px;
-      background-image: url('/public/icons/icons.png');
+      background-image: url('/public/icons/icons.webp');
       background-size: 64px 32px;
       background-position: 0 0;
       background-repeat: no-repeat;
@@ -94,13 +94,47 @@
   <script src="/Frontend/BuildingData.js"></script>
   <script src="/Frontend/MapView.js"></script>
   
-  <!-- Load skybox components - must load before app.js -->
-  <script type="text/babel" src="/Frontend/components/skybox/constants.js" onload="console.log('✅ constants.js loaded')" onerror="console.error('❌ Failed to load constants.js')"></script>
-  <script type="text/babel" src="/Frontend/components/skybox/SkyboxScene.js" onload="console.log('✅ SkyboxScene.js loaded')" onerror="console.error('❌ Failed to load SkyboxScene.js')"></script>
-  <script type="text/babel" src="/Frontend/components/skybox/UIComponents.js" onload="console.log('✅ UIComponents.js loaded')" onerror="console.error('❌ Failed to load UIComponents.js')"></script>
+  <!-- Vite Production Build: Use optimized pre-compiled React bundle -->
+  <!-- In production (Vite build), this will be replaced with the bundled version -->
+  <script type="module" src="/Frontend/main.jsx"></script>
   
-  <!-- Your React App - loads after components -->
-  <script type="text/babel" src="/Frontend/app.js" onload="console.log('✅ app.js loaded')" onerror="console.error('❌ Failed to load app.js')"></script>
+  <!-- Fallback: Babel mode (original architecture) for development or if Vite build fails -->
+  <script>
+    // Check if Vite module loaded successfully, otherwise fallback to Babel
+    window.addEventListener('error', function(e) {
+      if (e.filename && e.filename.includes('main.jsx')) {
+        console.warn('Vite build not available, using Babel fallback');
+        loadBabelMode();
+      }
+    }, true);
+    
+    // Fallback function for Babel mode
+    function loadBabelMode() {
+      const scripts = [
+        '/Frontend/components/skybox/constants.js',
+        '/Frontend/components/skybox/SkyboxScene.js',
+        '/Frontend/components/skybox/UIComponents.js',
+        '/Frontend/app.js'
+      ];
+      
+      scripts.forEach(src => {
+        const script = document.createElement('script');
+        script.type = 'text/babel';
+        script.src = src;
+        script.onload = () => console.log(`✅ ${src.split('/').pop()} loaded (Babel)`);
+        script.onerror = () => console.error(`❌ Failed to load ${src}`);
+        document.head.appendChild(script);
+      });
+    }
+    
+    // Try Babel mode after a short delay if Vite doesn't load
+    setTimeout(() => {
+      if (!window.SkyboxScene && !document.querySelector('script[type="text/babel"]')) {
+        console.log('Loading Babel mode...');
+        loadBabelMode();
+      }
+    }, 2000);
+  </script>
   
   <!-- Verify all scripts loaded -->
   <script>

@@ -11,7 +11,7 @@ const buildingsData = {
       skyboxIndex: 0, // Maps to "Thousand Hills in Truman"
       description: "Main campus library",
       hours: "24/7 during semester",
-      imageUrl: "/public/images/buildings/pickler.jpg"
+      imageUrl: "/public/images/buildings/pickler.webp"
     },
     {
       id: 2,

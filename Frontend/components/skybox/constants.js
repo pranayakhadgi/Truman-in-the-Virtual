@@ -7,23 +7,23 @@ const skyboxConfigs = [
   {
     name: "Thousand Hills in Truman",
     images: [
-      "/public/field-skyboxes 2/FishPond/posx.jpg", 
-      "/public/field-skyboxes 2/FishPond/negx.jpg",
-      "/public/field-skyboxes 2/FishPond/posy.jpg", 
-      "/public/field-skyboxes 2/FishPond/negy.jpg",
-      "/public/field-skyboxes 2/FishPond/posz.jpg", 
-      "/public/field-skyboxes 2/FishPond/negz.jpg"
+      "/public/field-skyboxes 2/FishPond/posx.webp", 
+      "/public/field-skyboxes 2/FishPond/negx.webp",
+      "/public/field-skyboxes 2/FishPond/posy.webp", 
+      "/public/field-skyboxes 2/FishPond/negy.webp",
+      "/public/field-skyboxes 2/FishPond/posz.webp", 
+      "/public/field-skyboxes 2/FishPond/negz.webp"
     ]
   },
   {
     name: "The Quad",
     images: [
-      "/public/field-skyboxes 2/Sorsele3/posx.jpg", 
-      "/public/field-skyboxes 2/Sorsele3/negx.jpg",
-      "/public/field-skyboxes 2/Sorsele3/posy.jpg", 
-      "/public/field-skyboxes 2/Sorsele3/negy.jpg",
-      "/public/field-skyboxes 2/Sorsele3/posz.jpg", 
-      "/public/field-skyboxes 2/Sorsele3/negz.jpg"
+      "/public/field-skyboxes 2/Sorsele3/posx.webp", 
+      "/public/field-skyboxes 2/Sorsele3/negx.webp",
+      "/public/field-skyboxes 2/Sorsele3/posy.webp", 
+      "/public/field-skyboxes 2/Sorsele3/negy.webp",
+      "/public/field-skyboxes 2/Sorsele3/posz.webp", 
+      "/public/field-skyboxes 2/Sorsele3/negz.webp"
     ]
   }
 ];
@@ -38,11 +38,16 @@ const sceneScripts = {
   "The Quad": "Welcome to Truman State University's iconic Quad, the vibrant heart of campus life. Once a shimmering lake, this space was transformed in 1924 after a fire at Baldwin Hall drained the water and filled the area with rubble, creating the peaceful grassy oasis you see today. Students flock here in sunny weather to play frisbee, take relaxing hammock naps, and enjoy spontaneous events ranging from barbecues and student radio promotions to lively snowball fights during Missouri winters. The Quad is more than just a green space—it's a communal hub where friendships form, creativity flourishes, and campus spirit thrives amidst the historic buildings that surround it."
 };
 
-// Make available globally for script tag usage
-window.skyboxConfigs = skyboxConfigs;
-window.sceneScripts = sceneScripts;
-window.SKYBOX_RADIUS = SKYBOX_RADIUS;
-window.ANNOTATION_OFFSET = ANNOTATION_OFFSET;
+// Export for ES modules (Vite)
+export { skyboxConfigs, sceneScripts, SKYBOX_RADIUS, ANNOTATION_OFFSET };
+
+// Make available globally for script tag usage (backward compatibility)
+if (typeof window !== 'undefined') {
+  window.skyboxConfigs = skyboxConfigs;
+  window.sceneScripts = sceneScripts;
+  window.SKYBOX_RADIUS = SKYBOX_RADIUS;
+  window.ANNOTATION_OFFSET = ANNOTATION_OFFSET;
+}
 
 console.log('constants.js loaded successfully');
 

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "echo 'No build step required'",
+  "buildCommand": "npm run optimize-images",
   "outputDirectory": ".",
   "installCommand": "npm install",
   "rewrites": [
