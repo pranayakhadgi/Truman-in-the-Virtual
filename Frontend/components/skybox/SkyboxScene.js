@@ -65,7 +65,7 @@ function SkyboxScene() {
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.25;
-      controls.autoRotate = false; // Disable auto rotation for better user control
+      controls.autoRotate = true; // Enable gentle auto rotation for ambient motion
       controls.autoRotateSpeed = 1.0;
       controls.enablePan = true;
       controls.enableZoom = true;

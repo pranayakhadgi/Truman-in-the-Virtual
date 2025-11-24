@@ -14,10 +14,12 @@
  * Component dependencies are loaded from window object (loaded via script tags)
  * to support the Babel-in-browser transpilation setup.
  */
+const AUTO_NARRATION_ENABLED = true;
+
 function App() {
   const [currentSkybox, setCurrentSkybox] = React.useState(0);
-  const [isTransitioning, setIsTransitioning] = React.useState(false);
-  const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const [isTransitioning, setIsTransitioning] = React.useState(true);
+  const [isSpeaking, setIsSpeaking] = React.useState(true);
   const [speechSynthesis, setSpeechSynthesis] = React.useState(null);
   const [showCaptions, setShowCaptions] = React.useState(false);
   const [currentCaptionText, setCurrentCaptionText] = React.useState('');
@@ -37,6 +39,7 @@ function App() {
   const SkyboxNavigationControls = window.SkyboxNavigationControls;
   const ViewMapButton = window.ViewMapButton;
   const CaptionDisplay = window.CaptionDisplay;
+  const autoNarratedSceneRef = React.useRef(null);
   
   // Validate components are available
   if (!SkyboxScene || !ControlsMenu || !ActionButtons || !SceneLabelAndLogo || 
@@ -198,6 +201,22 @@ function App() {
     "Thousand Hills in Truman": "Just a short drive west of Kirksville lies the stunning Thousand Hills State Park, a true natural treasure spanning over 3,000 acres with the centerpiece Forest Lake. Created in the early 1950s to supply water for the city, Forest Lake is surrounded by lush woods, savanna landscapes, and a network of hiking and mountain biking trails perfect for outdoor enthusiasts of all levels. The park offers a rich variety of recreational activities including fishing, boating, camping, and wildlife watching, making it a favorite escape for nature lovers and families alike.",
     "The Quad": "Welcome to Truman State University's iconic Quad, the vibrant heart of campus life. Once a shimmering lake, this space was transformed in 1924 after a fire at Baldwin Hall drained the water and filled the area with rubble, creating the peaceful grassy oasis you see today. Students flock here in sunny weather to play frisbee, take relaxing hammock naps, and enjoy spontaneous events ranging from barbecues and student radio promotions to lively snowball fights during Missouri winters. The Quad is more than just a green space—it's a communal hub where friendships form, creativity flourishes, and campus spirit thrives amidst the historic buildings that surround it."
   };
+
+  // Automatically narrate each scene once when enabled
+  React.useEffect(() => {
+    if (!AUTO_NARRATION_ENABLED) return;
+    if (!speechSynthesis) return;
+    if (!skyboxConfigs || !skyboxConfigs.length) return;
+    if (isTransitioning) return;
+    if (autoNarratedSceneRef.current === currentSkybox) return;
+
+    const sceneName = skyboxConfigs[currentSkybox]?.name;
+    if (!sceneName) return;
+
+    autoNarratedSceneRef.current = currentSkybox;
+    const script = sceneScripts[sceneName] || `Welcome to ${sceneName}.`;
+    speakText(script);
+  }, [currentSkybox, speechSynthesis, isTransitioning, skyboxConfigs, sceneScripts]);
   
   // Toggle speech for current scene
   const toggleSceneSpeech = () => {
