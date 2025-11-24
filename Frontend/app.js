@@ -18,8 +18,8 @@ const AUTO_NARRATION_ENABLED = true;
 
 function App() {
   const [currentSkybox, setCurrentSkybox] = React.useState(0);
-  const [isTransitioning, setIsTransitioning] = React.useState(true);
-  const [isSpeaking, setIsSpeaking] = React.useState(true);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [speechSynthesis, setSpeechSynthesis] = React.useState(null);
   const [showCaptions, setShowCaptions] = React.useState(false);
   const [currentCaptionText, setCurrentCaptionText] = React.useState('');
@@ -207,7 +207,6 @@ function App() {
     if (!AUTO_NARRATION_ENABLED) return;
     if (!speechSynthesis) return;
     if (!skyboxConfigs || !skyboxConfigs.length) return;
-    if (isTransitioning) return;
     if (autoNarratedSceneRef.current === currentSkybox) return;
 
     const sceneName = skyboxConfigs[currentSkybox]?.name;
@@ -216,7 +215,7 @@ function App() {
     autoNarratedSceneRef.current = currentSkybox;
     const script = sceneScripts[sceneName] || `Welcome to ${sceneName}.`;
     speakText(script);
-  }, [currentSkybox, speechSynthesis, isTransitioning, skyboxConfigs, sceneScripts]);
+  }, [currentSkybox, speechSynthesis, skyboxConfigs, sceneScripts]);
   
   // Toggle speech for current scene
   const toggleSceneSpeech = () => {
