@@ -1,8 +1,3 @@
-___________ .__ __ .__ ____ . __ .
-__ /___ __ __ _____ _____ ____ || ____ / || | ____ \ \ / /||______/ | __ _______ | |
-| | _ __ \ | / \ \ / \ | |/ \ \ \ | _/ __ \ \ Y / | _ __ \ \ | _ \ | |
-| | | | / | / Y Y / __ | | \ | | | \ | | | Y \ / \ / | || | /| | | | // __ | | |___| || |____/||| (___ /| / ||| / || || /_ > _/ |||| || |/( /____/ / / / / / / /
-                             
 # Truman Virtual Tour
 
 An immersive 3D virtual tour application for Truman State University that allows prospective students and visitors to explore the campus through an interactive browser-based 3D environment.
